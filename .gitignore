@@ -1,0 +1,22 @@
+# Environment files — NEVER commit these
+server/.env
+mobile/.env
+.env
+
+# Dependencies
+node_modules/
+mobile/node_modules/
+server/node_modules/
+
+# Expo
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
