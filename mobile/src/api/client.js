@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../constants/config';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 60000,
 });
 
 // Track if a refresh is already in progress to avoid multiple parallel refresh calls
