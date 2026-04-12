@@ -20,7 +20,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ishaan08121.mobile"
+      "package": "com.ishaan08121.mobile",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBhGQkhRgqXGcHIAWcAFk6bT7usNn8lLAg"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
