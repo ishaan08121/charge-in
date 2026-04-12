@@ -4,7 +4,7 @@ import {
   TouchableOpacity, TextInput, Platform, Keyboard, Animated,
   Dimensions,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { useChargerStore } from '../store/chargerStore';
 import ChargerCard from '../components/ChargerCard';
@@ -12,17 +12,68 @@ import FilterBar from '../components/FilterBar';
 import { colors } from '../constants/colors';
 
 const { height: SCREEN_H } = Dimensions.get('window');
-const SHEET_OPEN = SCREEN_H * 0.52;   // half screen — list fully visible
-const SHEET_CLOSED = 56;              // just the handle when map is tapped
+const SHEET_OPEN = SCREEN_H * 0.52;
+const SHEET_CLOSED = 56;
+
+function buildLeafletHTML(userLat, userLng, chargers) {
+  const markersJs = chargers
+    .filter(c => !isNaN(parseFloat(c.latitude)) && !isNaN(parseFloat(c.longitude)))
+    .map(c => `
+      L.circleMarker([${parseFloat(c.latitude)}, ${parseFloat(c.longitude)}], {
+        radius: 14,
+        fillColor: '${c.is_available ? '#C8FF00' : '#4DA6FF'}',
+        color: '#fff',
+        weight: 2.5,
+        fillOpacity: 1,
+      }).addTo(map).bindPopup('${(c.title || 'Charger').replace(/'/g, "\\'")}').on('click', function() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ id: '${c.id}', lat: ${parseFloat(c.latitude)}, lng: ${parseFloat(c.longitude)} }));
+      });
+    `).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body, #map { width: 100%; height: 100%; background: #1a1a1a; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  var map = L.map('map', { zoomControl: false }).setView([${userLat}, ${userLng}], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // User location marker
+  L.circleMarker([${userLat}, ${userLng}], {
+    radius: 10, fillColor: '#fff', color: '#C8FF00',
+    weight: 3, fillOpacity: 1,
+  }).addTo(map).bindPopup('You are here');
+
+  ${markersJs}
+
+  map.on('click', function() {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'mapTap' }));
+  });
+</script>
+</body>
+</html>`;
+}
 
 export default function MapScreen({ navigation }) {
-  const mapRef = useRef(null);
-  const [region, setRegion] = useState(null);
+  const webRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(true);
   const [locationError, setLocationError] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [searching, setSearching] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   const sheetAnim = useRef(new Animated.Value(SHEET_OPEN)).current;
   const [sheetOpen, setSheetOpen] = useState(true);
@@ -44,19 +95,12 @@ export default function MapScreen({ navigation }) {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const coords = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
       setUserLocation(coords);
-      goToCoords(coords);
       fetchNearby(coords.latitude, coords.longitude);
     } catch {
       setLocationError('Could not get location. Search manually.');
     } finally {
       setLocating(false);
     }
-  }
-
-  function goToCoords(coords, delta = 0.04) {
-    const r = { ...coords, latitudeDelta: delta, longitudeDelta: delta };
-    setRegion(r);
-    mapRef.current?.animateToRegion(r, 700);
   }
 
   async function searchLocation() {
@@ -67,7 +111,8 @@ export default function MapScreen({ navigation }) {
       const results = await Location.geocodeAsync(searchText.trim());
       if (!results?.length) { setLocationError('Location not found.'); return; }
       const { latitude, longitude } = results[0];
-      goToCoords({ latitude, longitude });
+      const coords = { latitude, longitude };
+      setUserLocation(coords);
       fetchNearby(latitude, longitude);
       setLocationError(null);
     } catch { setLocationError('Search failed.'); }
@@ -75,9 +120,9 @@ export default function MapScreen({ navigation }) {
   }
 
   const loadChargers = useCallback(() => {
-    if (!region) return;
-    fetchNearby(region.latitude, region.longitude);
-  }, [region, fetchNearby]);
+    if (!userLocation) return;
+    fetchNearby(userLocation.latitude, userLocation.longitude);
+  }, [userLocation, fetchNearby]);
 
   function animateSheet(open) {
     setSheetOpen(open);
@@ -88,41 +133,38 @@ export default function MapScreen({ navigation }) {
     }).start();
   }
 
+  function onWebMessage(event) {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.action === 'mapTap') {
+        animateSheet(false);
+      } else if (data.id) {
+        navigation.navigate('ChargerDetail', {
+          chargerId: data.id,
+          chargerLat: data.lat,
+          chargerLng: data.lng,
+        });
+      }
+    } catch {}
+  }
+
+  const mapHtml = userLocation
+    ? buildLeafletHTML(userLocation.latitude, userLocation.longitude, chargers)
+    : null;
+
   return (
     <View style={styles.container}>
-      {/* ── Full-screen map ── */}
-      {region ? (
-        <MapView
-          ref={mapRef}
+      {/* Map */}
+      {mapHtml ? (
+        <WebView
+          ref={webRef}
           style={StyleSheet.absoluteFill}
-          initialRegion={region}
-          onRegionChangeComplete={setRegion}
-          onPress={() => animateSheet(false)}
-          showsUserLocation={!!userLocation}
-          showsMyLocationButton={false}
-          userInterfaceStyle="dark"
-        >
-          {chargers
-            .filter(c => !isNaN(parseFloat(c.latitude)) && !isNaN(parseFloat(c.longitude)))
-            .map((c) => (
-            <Marker
-              key={c.id}
-              coordinate={{ latitude: parseFloat(c.latitude), longitude: parseFloat(c.longitude) }}
-              onPress={(e) => {
-                e.stopPropagation();
-                navigation.navigate('ChargerDetail', {
-                  chargerId: c.id,
-                  chargerLat: parseFloat(c.latitude),
-                  chargerLng: parseFloat(c.longitude),
-                });
-              }}
-            >
-              <View style={[styles.pin, { backgroundColor: c.is_available ? colors.primary : colors.blue }]}>
-                <Text style={styles.pinText}>⚡</Text>
-              </View>
-            </Marker>
-          ))}
-        </MapView>
+          source={{ html: mapHtml }}
+          onMessage={onWebMessage}
+          onLoad={() => setMapReady(true)}
+          javaScriptEnabled
+          originWhitelist={['*']}
+        />
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.mapPlaceholder]}>
           {locating
@@ -132,7 +174,7 @@ export default function MapScreen({ navigation }) {
         </View>
       )}
 
-      {/* Floating top-right buttons */}
+      {/* Floating buttons */}
       <View style={styles.floatRight}>
         {chargers.length > 0 && (
           <View style={styles.countPill}>
@@ -142,23 +184,21 @@ export default function MapScreen({ navigation }) {
         <TouchableOpacity style={styles.iconBtn} onPress={detectMyLocation} disabled={locating}>
           {locating ? <ActivityIndicator color={colors.primary} size="small" /> : <Text style={styles.iconBtnText}>📍</Text>}
         </TouchableOpacity>
-        {region && (
+        {userLocation && (
           <TouchableOpacity style={styles.iconBtn} onPress={loadChargers}>
             <Text style={styles.iconBtnText}>↺</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* ── Bottom sheet ── */}
+      {/* Bottom sheet */}
       <Animated.View style={[styles.sheet, { height: sheetAnim }]}>
-        {/* Handle */}
         <TouchableOpacity style={styles.handleWrap} onPress={() => animateSheet(!sheetOpen)} activeOpacity={0.7}>
           <View style={styles.handle} />
         </TouchableOpacity>
 
         {sheetOpen && (
           <>
-            {/* Search row */}
             <View style={styles.searchRow}>
               <View style={styles.searchBox}>
                 <TextInput
@@ -179,12 +219,10 @@ export default function MapScreen({ navigation }) {
 
             {locationError && <Text style={styles.errorText}>{locationError}</Text>}
 
-            {/* Filter chips */}
             <FilterBar onFilterChange={loadChargers} />
 
             {loading && <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />}
 
-            {/* Charger list */}
             <FlatList
               data={chargers}
               keyExtractor={(item) => item.id}
@@ -220,18 +258,8 @@ export default function MapScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#111' },
-
-  mapPlaceholder: { alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: colors.card },
+  mapPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
   placeholderText: { color: colors.textSecondary, fontSize: 14, marginTop: 8 },
-
-  pin: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2.5, borderColor: '#fff',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5, shadowRadius: 4, elevation: 6,
-  },
-  pinText: { fontSize: 16 },
 
   floatRight: {
     position: 'absolute', top: 12, right: 14,
@@ -250,7 +278,6 @@ const styles = StyleSheet.create({
   },
   iconBtnText: { fontSize: 20 },
 
-  // Sheet
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: colors.bg,
