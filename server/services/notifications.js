@@ -66,3 +66,27 @@ export async function notifyHostSessionEnded(hostPushToken, booking, unitsKwh, a
     { type: 'SESSION_ENDED', bookingId: booking.id }
   );
 }
+
+/**
+ * Notify user that their charging session has started.
+ */
+export async function notifyUserSessionStarted(userPushToken, booking) {
+  await sendPush(
+    userPushToken,
+    '⚡ Charging Started!',
+    `Your EV is now charging at ${booking.charger?.title || 'the station'}. Session is live.`,
+    { type: 'SESSION_STARTED', bookingId: booking.id }
+  );
+}
+
+/**
+ * Notify user that their charging session has completed.
+ */
+export async function notifyUserSessionCompleted(userPushToken, booking, unitsKwh, finalAmount) {
+  await sendPush(
+    userPushToken,
+    'Charging Complete ✓',
+    `Session done! ${unitsKwh} kWh delivered. Amount charged: ₹${(finalAmount / 100).toFixed(0)}.`,
+    { type: 'SESSION_COMPLETED', bookingId: booking.id }
+  );
+}

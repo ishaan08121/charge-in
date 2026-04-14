@@ -1,10 +1,10 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { apiGetBookings, apiRespondBooking, apiStartSession, apiEndSession } from '../../api/bookings';
-import { useBookingStore } from '../../store/bookingStore';
+import { apiGetUser } from '../../api/users';
 import { colors } from '../../constants/colors';
 
 const STATUS_COLOR = {
@@ -17,12 +17,35 @@ const STATUS_COLOR = {
 };
 
 export default function BookingRequestsScreen({ navigation }) {
-  const { bookings, loading, fetchBookings } = useBookingStore();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Host view — filter to show host's bookings
-  const hostBookings = bookings;
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await apiGetBookings('host');
+      const bookingsData = data.bookings || [];
 
-  const load = useCallback(() => fetchBookings('host'), []);
+      // Fetch user details for each unique user_id
+      const uniqueUserIds = [...new Set(bookingsData.map(b => b.user_id).filter(Boolean))];
+      const userMap = {};
+      await Promise.all(uniqueUserIds.map(async (uid) => {
+        try {
+          const { data: ud } = await apiGetUser(uid);
+          userMap[uid] = ud.user;
+        } catch (e) {
+          console.log('apiGetUser failed for', uid, e?.response?.status, e?.message);
+        }
+      }));
+
+      setBookings(bookingsData.map(b => ({ ...b, user: userMap[b.user_id] || null })));
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.error || 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => { load(); }, []);
 
   async function respond(bookingId, action) {
@@ -39,9 +62,12 @@ export default function BookingRequestsScreen({ navigation }) {
           onPress: async () => {
             try {
               await apiRespondBooking(bookingId, action);
-              load();
+              const newStatus = action === 'accept' ? 'confirmed' : 'declined';
+              setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
+              Alert.alert('Success', action === 'accept' ? 'Booking accepted!' : 'Booking declined');
             } catch (err) {
-              Alert.alert('Error', err.response?.data?.error || 'Failed');
+              const msg = err.response?.data?.error || err.message || 'Failed';
+              Alert.alert('Error', msg);
             }
           },
         },
@@ -109,6 +135,15 @@ export default function BookingRequestsScreen({ navigation }) {
           </View>
         </View>
 
+        {/* User details */}
+        <View style={styles.userRow}>
+          <Text style={styles.userIcon}>👤</Text>
+          <View>
+            <Text style={styles.userName}>{item.user?.full_name || 'Unknown User'}</Text>
+            {item.user?.phone && <Text style={styles.userPhone}>{item.user.phone}</Text>}
+          </View>
+        </View>
+
         <View style={styles.amountRow}>
           <Text style={styles.amountLabel}>Held amount</Text>
           <Text style={styles.amountValue}>₹{((item.amount_held || 0) / 100).toFixed(0)}</Text>
@@ -144,9 +179,9 @@ export default function BookingRequestsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Booking Requests</Text>
-      {loading && !hostBookings.length && <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />}
+      {loading && !bookings.length && <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />}
       <FlatList
-        data={hostBookings}
+        data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
@@ -177,6 +212,10 @@ const styles = StyleSheet.create({
   time: { fontSize: 12, color: colors.textSecondary },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, padding: 10, backgroundColor: colors.bg, borderRadius: 10 },
+  userIcon: { fontSize: 20 },
+  userName: { color: colors.textPrimary, fontWeight: '600', fontSize: 14 },
+  userPhone: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   amountRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.cardBorder, marginBottom: 12 },
   amountLabel: { color: colors.textMuted, fontSize: 13 },
   amountValue: { color: colors.textPrimary, fontWeight: '700', fontSize: 13 },

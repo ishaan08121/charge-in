@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import supabase from '../services/supabase.js';
 import razorpay from '../services/razorpay.js';
 import { requireAuth } from '../middleware/auth.js';
-import { notifyHost, notifyUser, notifyHostSessionEnded, notifyHostCancelled } from '../services/notifications.js';
+import { notifyHost, notifyUser, notifyHostSessionEnded, notifyHostCancelled, notifyUserSessionStarted, notifyUserSessionCompleted } from '../services/notifications.js';
 
 const router = Router();
 
@@ -242,6 +242,10 @@ router.post('/:id/start', requireAuth, async (req, res, next) => {
 
     if (sessionErr) return res.status(400).json({ error: sessionErr.message });
 
+    // Notify user that charging has started
+    const userToken = await getUserPushToken(booking.user_id);
+    await notifyUserSessionStarted(userToken, booking);
+
     return res.json({ message: 'Session started', session });
   } catch (err) {
     next(err);
@@ -307,9 +311,15 @@ router.post('/:id/end', requireAuth, async (req, res, next) => {
       status: 'pending',
     });
 
-    // Notify host
-    const hostToken = await getUserPushToken(booking.host_id);
-    await notifyHostSessionEnded(hostToken, booking, units_kwh, hostEarnings);
+    // Notify host and user
+    const [hostToken, userToken] = await Promise.all([
+      getUserPushToken(booking.host_id),
+      getUserPushToken(booking.user_id),
+    ]);
+    await Promise.all([
+      notifyHostSessionEnded(hostToken, booking, units_kwh, hostEarnings),
+      notifyUserSessionCompleted(userToken, booking, units_kwh, finalAmount),
+    ]);
 
     return res.json({ message: 'Session ended', session, final_amount_inr: (finalAmount / 100).toFixed(2) });
   } catch (err) {
@@ -428,6 +438,18 @@ router.get('/', requireAuth, async (req, res, next) => {
 
     const { data, error } = await query;
     if (error) return res.status(400).json({ error: error.message });
+
+    // For host role, attach user details
+    if (role === 'host' && data?.length) {
+      const userIds = [...new Set(data.map(b => b.user_id).filter(Boolean))];
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, full_name, phone')
+        .in('id', userIds);
+      const userMap = Object.fromEntries((users || []).map(u => [u.id, u]));
+      const enriched = data.map(b => ({ ...b, user: userMap[b.user_id] || null }));
+      return res.json({ bookings: enriched });
+    }
 
     return res.json({ bookings: data });
   } catch (err) {

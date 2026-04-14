@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetBooking, apiCancelBooking, apiStartSession } from '../api/bookings';
+import { apiGetUser } from '../api/users';
 import { useAuthStore } from '../store/authStore';
 import { colors } from '../constants/colors';
 
@@ -32,6 +33,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const { user } = useAuthStore();
 
   const [booking, setBooking] = useState(null);
+  const [bookerUser, setBookerUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [otpInput, setOtpInput] = useState('');
@@ -44,7 +46,16 @@ export default function BookingDetailScreen({ route, navigation }) {
       async function load() {
         try {
           const { data } = await apiGetBooking(bookingId);
-          if (active) setBooking(data.booking);
+          if (active) {
+            setBooking(data.booking);
+            // Fetch booker details for host view
+            if (data.booking.user_id && data.booking.host_id === user?.id) {
+              try {
+                const { data: ud } = await apiGetUser(data.booking.user_id);
+                setBookerUser(ud.user);
+              } catch {}
+            }
+          }
         } catch {
           Alert.alert('Error', 'Could not load booking');
           navigation.goBack();
@@ -130,7 +141,13 @@ export default function BookingDetailScreen({ route, navigation }) {
         <Row label="Date" value={start.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} />
         <Row label="Start" value={start.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} />
         <Row label="End" value={end.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} />
-        <Row label="Amount" value={`₹${((booking.amount_held || 0) / 100).toFixed(0)}`} last />
+        <Row label="Amount" value={`₹${((booking.amount_held || 0) / 100).toFixed(0)}`} last={!isHost || !bookerUser} />
+        {isHost && bookerUser && (
+          <>
+            <Row label="Booked by" value={bookerUser.full_name || '—'} />
+            <Row label="Phone" value={bookerUser.phone || '—'} last />
+          </>
+        )}
       </View>
 
       {/* ── USER: Show OTP ── */}

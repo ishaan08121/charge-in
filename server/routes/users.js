@@ -102,12 +102,24 @@ router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, full_name, is_host, created_at')
+      .select('id, full_name, phone, is_host, created_at')
       .eq('id', req.params.id)
       .single();
 
-    if (error) return res.status(404).json({ error: 'User not found' });
-    return res.json({ user: data });
+    if (!error && data) return res.json({ user: data });
+
+    // Row missing — fallback to auth metadata
+    const { data: authData } = await supabase.auth.admin.getUserById(req.params.id);
+    if (!authData?.user) return res.status(404).json({ error: 'User not found' });
+
+    return res.json({
+      user: {
+        id: authData.user.id,
+        full_name: authData.user.user_metadata?.full_name || null,
+        phone: authData.user.phone || authData.user.user_metadata?.phone || null,
+        is_host: false,
+      }
+    });
   } catch (err) {
     next(err);
   }

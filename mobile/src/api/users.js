@@ -2,6 +2,8 @@ import client from './client';
 
 export const apiGetMe = () => client.get('/users/me');
 
+export const apiGetUser = (id) => client.get(`/users/${id}`);
+
 export const apiUpdateMe = (data) => client.put('/users/me', data);
 
 export const apiSavePushToken = (expo_push_token) =>

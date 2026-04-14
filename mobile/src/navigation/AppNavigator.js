@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
+import { apiGetBookings } from '../api/bookings';
 
 import MapScreen from '../screens/MapScreen';
 import ChargerDetailScreen from '../screens/ChargerDetailScreen';
@@ -52,6 +53,7 @@ function BookingsStackNavigator() {
       <BookingsStack.Screen name="BookingDetail" component={BookingDetailScreen} options={{ title: 'Booking Details' }} />
       <BookingsStack.Screen name="ActiveSession" component={ActiveSessionScreen} options={{ title: 'Live Session ⚡' }} />
       <BookingsStack.Screen name="SessionComplete" component={SessionCompleteScreen} options={{ title: 'Session Complete', headerShown: false }} />
+      <BookingsStack.Screen name="BookingRequests" component={BookingRequestsScreen} options={{ title: 'Booking Requests' }} />
     </BookingsStack.Navigator>
   );
 }
@@ -72,6 +74,25 @@ function ProfileStackNavigator() {
 }
 
 export default function AppNavigator() {
+  const [activeCount, setActiveCount] = useState(0);
+
+  useEffect(() => {
+    async function checkActive() {
+      try {
+        const [userRes, hostRes] = await Promise.all([
+          apiGetBookings('user'), apiGetBookings('host'),
+        ]);
+        const all = [...(userRes.data.bookings || []), ...(hostRes.data.bookings || [])];
+        const unique = [...new Map(all.map(b => [b.id, b])).values()];
+        const active = unique.filter(b => ['pending', 'confirmed', 'active'].includes(b.status));
+        setActiveCount(active.length);
+      } catch {}
+    }
+    checkActive();
+    const interval = setInterval(checkActive, 30000); // poll every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -95,7 +116,24 @@ export default function AppNavigator() {
       <Tab.Screen
         name="BookingsTab"
         component={BookingsStackNavigator}
-        options={{ title: 'Bookings', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }}
+        options={{
+          title: 'Bookings',
+          tabBarIcon: ({ color }) => (
+            <View>
+              <Text style={{ fontSize: 20, color }}>📋</Text>
+              {activeCount > 0 && (
+                <View style={{
+                  position: 'absolute', top: -4, right: -8,
+                  backgroundColor: colors.danger, borderRadius: 8,
+                  minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+                  paddingHorizontal: 3,
+                }}>
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{activeCount}</Text>
+                </View>
+              )}
+            </View>
+          ),
+        }}
       />
       <Tab.Screen
         name="ProfileTab"

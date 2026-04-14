@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetBookings } from '../api/bookings';
+import { useAuthStore } from '../store/authStore';
 import { colors } from '../constants/colors';
 
 const STATUS_COLOR = {
@@ -29,6 +30,7 @@ const ACTIVE_STATUSES = ['pending', 'confirmed', 'active'];
 const HISTORY_STATUSES = ['completed', 'cancelled', 'declined'];
 
 export default function BookingsScreen({ navigation }) {
+  const { user } = useAuthStore();
   const [tab, setTab] = useState('active'); // 'active' | 'history'
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +148,16 @@ export default function BookingsScreen({ navigation }) {
                 </View>
               )}
 
+              {/* Show booker name when user is host */}
+              {item.host_id === user?.id && item.user?.full_name && (
+                <Text style={styles.bookerText}>👤 {item.user.full_name}</Text>
+              )}
+
+              {/* Cancel reason */}
+              {['cancelled', 'declined'].includes(item.status) && item.cancel_reason && (
+                <Text style={styles.cancelReason}>Reason: {item.cancel_reason}</Text>
+              )}
+
               {item.status === 'completed' && item.session?.final_amount && (
                 <Text style={styles.amountText}>
                   Paid ₹{(item.session.final_amount / 100).toFixed(0)} · {item.session.units_kwh} kWh
@@ -208,6 +220,8 @@ const styles = StyleSheet.create({
   },
   activeChipText: { color: '#29B6F6', fontSize: 12, fontWeight: '600' },
   amountText: { fontSize: 12, color: colors.primary, marginTop: 6, fontWeight: '600' },
+  bookerText: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+  cancelReason: { fontSize: 12, color: colors.danger, marginTop: 4 },
 
   emptyBox: { alignItems: 'center', paddingTop: 48 },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
