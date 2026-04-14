@@ -439,7 +439,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const { data, error } = await query;
     if (error) return res.status(400).json({ error: error.message });
 
-    // For host role, attach user details
+    // For host role, attach booker details with auth fallback
     if (role === 'host' && data?.length) {
       const userIds = [...new Set(data.map(b => b.user_id).filter(Boolean))];
       const { data: users } = await supabase
@@ -447,8 +447,21 @@ router.get('/', requireAuth, async (req, res, next) => {
         .select('id, full_name, phone')
         .in('id', userIds);
       const userMap = Object.fromEntries((users || []).map(u => [u.id, u]));
-      const enriched = data.map(b => ({ ...b, user: userMap[b.user_id] || null }));
-      return res.json({ bookings: enriched });
+
+      // Fallback: fetch missing users from auth
+      const missingIds = userIds.filter(id => !userMap[id]);
+      await Promise.all(missingIds.map(async (uid) => {
+        const { data: authData } = await supabase.auth.admin.getUserById(uid);
+        if (authData?.user) {
+          userMap[uid] = {
+            id: uid,
+            full_name: authData.user.user_metadata?.full_name || null,
+            phone: authData.user.phone || authData.user.user_metadata?.phone || null,
+          };
+        }
+      }));
+
+      return res.json({ bookings: data.map(b => ({ ...b, user: userMap[b.user_id] || null })) });
     }
 
     return res.json({ bookings: data });
