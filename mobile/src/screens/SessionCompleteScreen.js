@@ -18,6 +18,10 @@ export default function SessionCompleteScreen({ route, navigation }) {
   const [submitting, setSubmitting] = useState(false);
   const [reviewed, setReviewed] = useState(false);
 
+  const [clientRating, setClientRating] = useState(0);
+  const [clientSubmitting, setClientSubmitting] = useState(false);
+  const [clientReviewed, setClientReviewed] = useState(false);
+
   const unitsKwh = session.units_kwh || 0;
   const finalAmount = session.final_amount || 0;
   const startedAt = session.started_at ? new Date(session.started_at) : new Date(booking.start_time);
@@ -36,6 +40,19 @@ export default function SessionCompleteScreen({ route, navigation }) {
       Alert.alert('Error', err.response?.data?.error || 'Could not submit review');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function submitClientRating() {
+    if (clientRating === 0) return Alert.alert('Select a rating', 'Tap stars to rate the client');
+    setClientSubmitting(true);
+    try {
+      await client.post('/reviews/client', { booking_id: booking.id, rating: clientRating });
+      setClientReviewed(true);
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.error || 'Could not submit rating');
+    } finally {
+      setClientSubmitting(false);
     }
   }
 
@@ -67,6 +84,38 @@ export default function SessionCompleteScreen({ route, navigation }) {
           highlight
         />
       </View>
+
+      {/* Host-only: rate the client */}
+      {isHost && (
+        clientReviewed ? (
+          <View style={styles.reviewedBox}>
+            <Text style={styles.reviewedText}>★ Client rated. Thank you!</Text>
+          </View>
+        ) : (
+          <View style={styles.reviewBox}>
+            <Text style={styles.reviewTitle}>
+              Rate {booking.user?.full_name || 'the client'}
+            </Text>
+            <Text style={styles.reviewSub}>How was your experience with this EV owner?</Text>
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <TouchableOpacity key={s} onPress={() => setClientRating(s)} activeOpacity={0.7}>
+                  <Text style={[styles.star, { color: s <= clientRating ? colors.star : colors.cardBorder }]}>★</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={[styles.reviewBtn, clientRating === 0 && { opacity: 0.4 }]}
+              onPress={submitClientRating}
+              disabled={clientSubmitting || clientRating === 0}
+            >
+              {clientSubmitting
+                ? <ActivityIndicator color="#000" />
+                : <Text style={styles.reviewBtnText}>Submit Rating</Text>}
+            </TouchableOpacity>
+          </View>
+        )
+      )}
 
       {/* User-only: rate the charger */}
       {!isHost && (
@@ -144,7 +193,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
     borderRadius: 16, padding: 18, width: '100%', marginBottom: 16, alignItems: 'center',
   },
-  reviewTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 16 },
+  reviewTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  reviewSub: { fontSize: 12, color: colors.textMuted, marginBottom: 14, textAlign: 'center' },
   starRow: { flexDirection: 'row', marginBottom: 18 },
   star: { fontSize: 42, marginHorizontal: 6 },
   reviewBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32, alignItems: 'center' },

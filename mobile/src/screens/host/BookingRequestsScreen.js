@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { apiGetBookings, apiRespondBooking, apiStartSession, apiEndSession } from '../../api/bookings';
-import { apiGetUser } from '../../api/users';
+import { apiGetUser, apiGetUserRating } from '../../api/users';
 import { colors } from '../../constants/colors';
 
 const STATUS_COLOR = {
@@ -29,16 +29,25 @@ export default function BookingRequestsScreen({ navigation }) {
       // Fetch user details for each unique user_id
       const uniqueUserIds = [...new Set(bookingsData.map(b => b.user_id).filter(Boolean))];
       const userMap = {};
+      const ratingMap = {};
       await Promise.all(uniqueUserIds.map(async (uid) => {
         try {
-          const { data: ud } = await apiGetUser(uid);
+          const [{ data: ud }, { data: rd }] = await Promise.all([
+            apiGetUser(uid),
+            apiGetUserRating(uid),
+          ]);
           userMap[uid] = ud.user;
-        } catch (e) {
-          console.log('apiGetUser failed for', uid, e?.response?.status, e?.message);
+          ratingMap[uid] = rd;
+        } catch {
+          // silent
         }
       }));
 
-      setBookings(bookingsData.map(b => ({ ...b, user: userMap[b.user_id] || null })));
+      setBookings(bookingsData.map(b => ({
+        ...b,
+        user: userMap[b.user_id] || null,
+        clientRating: ratingMap[b.user_id] || null,
+      })));
     } catch (err) {
       Alert.alert('Error', err.response?.data?.error || 'Failed to load');
     } finally {
@@ -138,10 +147,16 @@ export default function BookingRequestsScreen({ navigation }) {
         {/* User details */}
         <View style={styles.userRow}>
           <Text style={styles.userIcon}>👤</Text>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.userName}>{item.user?.full_name || 'Unknown User'}</Text>
             {item.user?.phone && <Text style={styles.userPhone}>{item.user.phone}</Text>}
           </View>
+          {item.clientRating?.average_rating && (
+            <View style={styles.ratingBadge}>
+              <Text style={styles.ratingText}>★ {item.clientRating.average_rating}</Text>
+              <Text style={styles.ratingCount}> ({item.clientRating.total})</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.amountRow}>
@@ -212,7 +227,10 @@ const styles = StyleSheet.create({
   time: { fontSize: 12, color: colors.textSecondary },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, padding: 10, backgroundColor: colors.bg, borderRadius: 10 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, padding: 10, backgroundColor: colors.bg, borderRadius: 10, flexWrap: 'nowrap' },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFA72622', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  ratingText: { color: '#FFA726', fontWeight: '700', fontSize: 13 },
+  ratingCount: { color: colors.textMuted, fontSize: 11 },
   userIcon: { fontSize: 20 },
   userName: { color: colors.textPrimary, fontWeight: '600', fontSize: 14 },
   userPhone: { color: colors.textMuted, fontSize: 12, marginTop: 2 },

@@ -1,6 +1,7 @@
 import client from './client';
 
 export const apiGetMe = () => client.get('/users/me');
+export const apiGetUserRating = (userId) => client.get(`/reviews/user/${userId}`);
 
 export const apiGetUser = (id) => client.get(`/users/${id}`);
 
