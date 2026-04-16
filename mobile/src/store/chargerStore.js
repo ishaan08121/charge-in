@@ -13,6 +13,10 @@ export const useChargerStore = create((set, get) => ({
 
   setFilter: (key, value) => set({ [key]: value }),
 
+  removeCharger: (id) => set(state => ({
+    chargers: state.chargers.filter(c => c.id !== id),
+  })),
+
   fetchNearby: async (lat, lng) => {
     set({ loading: true, error: null });
     try {

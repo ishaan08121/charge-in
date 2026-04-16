@@ -23,16 +23,19 @@ router.get('/me', requireAuth, async (req, res, next) => {
       const authUser = authData.user;
       const { data: created, error: insertErr } = await supabase
         .from('users')
-        .insert({
+        .upsert({
           id: req.userId,
           email: authUser.email || null,
           full_name: authUser.user_metadata?.full_name || null,
-          phone: authUser.phone || authUser.user_metadata?.phone || null,
-        })
+          // phone omitted — UNIQUE constraint can conflict; user sets it via profile edit
+        }, { onConflict: 'id', ignoreDuplicates: false })
         .select()
         .single();
 
-      if (insertErr) return res.status(500).json({ error: 'Could not create user profile' });
+      if (insertErr) {
+        console.error('[users/me] upsert failed:', insertErr.message, insertErr.code);
+        return res.status(500).json({ error: 'Could not create user profile', detail: insertErr.message });
+      }
       data = created;
     }
 

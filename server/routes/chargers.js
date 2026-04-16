@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
 import supabase from '../services/supabase.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // POST /api/chargers — list a new charger
 router.post('/', requireAuth, async (req, res, next) => {
@@ -135,6 +137,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       .single();
 
     if (error) return res.status(404).json({ error: 'Charger not found' });
+    console.log('[charger detail] photos count:', data?.charger_photos?.length, data?.charger_photos?.map(p => p.url));
     return res.json({ charger: data });
   } catch (err) {
     next(err);
@@ -194,6 +197,26 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     if (fetchErr) return res.status(404).json({ error: 'Charger not found' });
     if (existing.host_id !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 
+    // Cascade-delete dependent records manually (FK constraints have no CASCADE)
+    // 1. Get all booking IDs for this charger
+    const { data: bookingRows } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('charger_id', req.params.id);
+
+    if (bookingRows?.length) {
+      const bookingIds = bookingRows.map(b => b.id);
+      // 2. Delete sessions and payouts tied to those bookings
+      await supabase.from('sessions').delete().in('booking_id', bookingIds);
+      await supabase.from('payouts').delete().in('booking_id', bookingIds);
+      // 3. Delete the bookings themselves
+      await supabase.from('bookings').delete().in('id', bookingIds);
+    }
+
+    // 4. Delete reviews for this charger
+    await supabase.from('reviews').delete().eq('charger_id', req.params.id);
+
+    // 5. Delete charger (charger_photos + availability_slots cascade automatically)
     const { error } = await supabase.from('chargers').delete().eq('id', req.params.id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Charger deleted' });
@@ -202,8 +225,8 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
   }
 });
 
-// POST /api/chargers/:id/photos — upload a photo to Supabase Storage
-router.post('/:id/photos', requireAuth, async (req, res, next) => {
+// POST /api/chargers/:id/photos — upload a photo to Supabase Storage (multipart)
+router.post('/:id/photos', requireAuth, upload.single('photo'), async (req, res, next) => {
   try {
     const { data: existing, error: fetchErr } = await supabase
       .from('chargers')
@@ -214,19 +237,26 @@ router.post('/:id/photos', requireAuth, async (req, res, next) => {
     if (fetchErr) return res.status(404).json({ error: 'Charger not found' });
     if (existing.host_id !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 
-    // Expect base64 encoded image in body: { base64, mime_type }
-    const { base64, mime_type = 'image/jpeg' } = req.body;
-    if (!base64) return res.status(400).json({ error: 'base64 image data is required' });
+    if (!req.file) {
+      console.error('[photo upload] no file received — multer did not parse the request');
+      return res.status(400).json({ error: 'No photo file uploaded' });
+    }
 
-    const buffer = Buffer.from(base64, 'base64');
+    console.log('[photo upload] file received:', req.file.originalname, req.file.mimetype, req.file.size, 'bytes');
+
+    const mime_type = req.file.mimetype || 'image/jpeg';
     const ext = mime_type.split('/')[1] || 'jpg';
     const filename = `${req.params.id}/${Date.now()}.${ext}`;
 
     const { error: uploadErr } = await supabase.storage
       .from('charger-photos')
-      .upload(filename, buffer, { contentType: mime_type, upsert: false });
+      .upload(filename, req.file.buffer, { contentType: mime_type, upsert: false });
 
-    if (uploadErr) return res.status(400).json({ error: uploadErr.message });
+    if (uploadErr) {
+      console.error('[photo upload] storage error:', uploadErr.message);
+      return res.status(400).json({ error: uploadErr.message });
+    }
+    console.log('[photo upload] storage ok:', filename);
 
     const { data: { publicUrl } } = supabase.storage
       .from('charger-photos')
@@ -238,7 +268,11 @@ router.post('/:id/photos', requireAuth, async (req, res, next) => {
       .select()
       .single();
 
-    if (dbErr) return res.status(400).json({ error: dbErr.message });
+    if (dbErr) {
+      console.error('[photo upload] db insert error:', dbErr.message, dbErr.code);
+      return res.status(400).json({ error: dbErr.message });
+    }
+    console.log('[photo upload] saved to charger_photos, url:', publicUrl);
     return res.status(201).json({ photo });
   } catch (err) {
     next(err);

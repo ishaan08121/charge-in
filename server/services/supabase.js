@@ -7,12 +7,14 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY environment variables');
 }
 
-// Admin client using service key — bypasses RLS, only used server-side
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+const clientOpts = { auth: { autoRefreshToken: false, persistSession: false } };
+
+// Primary DB client — service role, bypasses RLS. Never call auth.getUser() on this.
+const supabase = createClient(supabaseUrl, supabaseServiceKey, clientOpts);
+
+// Separate instance used ONLY for token verification in middleware.
+// Keeping it separate prevents auth.getUser(userJwt) from contaminating
+// the primary client's auth state and breaking RLS bypass.
+export const supabaseVerifier = createClient(supabaseUrl, supabaseServiceKey, clientOpts);
 
 export default supabase;

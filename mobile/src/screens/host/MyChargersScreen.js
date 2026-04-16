@@ -5,12 +5,14 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetMyChargers, apiUpdateCharger, apiDeleteCharger } from '../../api/chargers';
+import { useChargerStore } from '../../store/chargerStore';
 import { colors } from '../../constants/colors';
 
 export default function MyChargersScreen({ navigation }) {
   const [chargers, setChargers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState(null);
+  const removeChargerFromStore = useChargerStore(s => s.removeCharger);
 
   async function load() {
     setLoading(true);
@@ -63,6 +65,7 @@ export default function MyChargersScreen({ navigation }) {
     try {
       await apiDeleteCharger(id);
       setChargers(prev => prev.filter(c => c.id !== id));
+      removeChargerFromStore(id); // instantly remove from map too
     } catch {
       Alert.alert('Error', 'Could not delist charger');
     }

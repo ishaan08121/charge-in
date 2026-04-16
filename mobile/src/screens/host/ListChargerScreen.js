@@ -5,8 +5,11 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import MapView, { Marker } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import client from '../../api/client';
+import { API_BASE_URL } from '../../constants/config';
 import { colors } from '../../constants/colors';
 
 const CHARGER_TYPES = [
@@ -19,7 +22,17 @@ const CHARGER_TYPES = [
 ];
 
 const CONNECTOR_TYPES = ['Type 2', 'CCS2', 'CHAdeMO', 'GB/T', 'Type 1'];
-const MIN_PHOTOS = 5;
+const MIN_PHOTOS = 3;
+
+// Converts any image (incl. HEIF/HEIC from iPhone) to JPEG before upload
+async function toJpeg(uri) {
+  const result = await ImageManipulator.manipulateAsync(
+    uri,
+    [],
+    { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG }
+  );
+  return { uri: result.uri, mime: 'image/jpeg' };
+}
 
 export default function ListChargerScreen({ navigation }) {
   const [step, setStep] = useState(1);
@@ -31,7 +44,7 @@ export default function ListChargerScreen({ navigation }) {
   const [locationType, setLocationType] = useState('home');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [photos, setPhotos] = useState([]); // { uri, base64 }[]
+  const [photos, setPhotos] = useState([]); // { uri, mime }[]
 
   // Step 2
   const [location, setLocation] = useState(null);
@@ -45,7 +58,6 @@ export default function ListChargerScreen({ navigation }) {
   async function pickPhoto() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      // Try camera permission too
       const camStatus = await ImagePicker.requestCameraPermissionsAsync();
       if (camStatus.status !== 'granted') {
         Alert.alert('Permission needed', 'Allow photo access to upload charger photos');
@@ -53,32 +65,36 @@ export default function ListChargerScreen({ navigation }) {
       }
     }
 
-    Alert.alert('Add Photo', 'Choose source', [
+    const remaining = 10 - photos.length;
+    if (remaining <= 0) return;
+    const batchLimit = Math.min(remaining, 5);
+
+    Alert.alert('Add Photos', 'Choose source', [
       {
-        text: 'Camera', onPress: async () => {
+        text: 'Camera',
+        onPress: async () => {
           const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             quality: 0.7,
-            base64: true,
-            allowsEditing: true,
-            aspect: [4, 3],
           });
           if (!result.canceled && result.assets?.[0]) {
-            setPhotos((p) => [...p, { uri: result.assets[0].uri, base64: result.assets[0].base64, mime: result.assets[0].mimeType || 'image/jpeg' }]);
+            const converted = await toJpeg(result.assets[0].uri);
+            setPhotos((p) => [...p, converted]);
           }
         },
       },
       {
-        text: 'Photo Library', onPress: async () => {
+        text: `Photo Library (select up to ${batchLimit})`,
+        onPress: async () => {
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             quality: 0.7,
-            base64: true,
-            allowsEditing: true,
-            aspect: [4, 3],
+            allowsMultipleSelection: true,
+            selectionLimit: batchLimit,
           });
-          if (!result.canceled && result.assets?.[0]) {
-            setPhotos((p) => [...p, { uri: result.assets[0].uri, base64: result.assets[0].base64, mime: result.assets[0].mimeType || 'image/jpeg' }]);
+          if (!result.canceled && result.assets?.length) {
+            const newPhotos = await Promise.all(result.assets.map(a => toJpeg(a.uri)));
+            setPhotos((p) => [...p, ...newPhotos].slice(0, 10));
           }
         },
       },
@@ -133,16 +149,25 @@ export default function ListChargerScreen({ navigation }) {
 
       const chargerId = chargerData.charger.id;
 
-      // 2. Upload each photo
+      // 2. Upload each photo — use fetch (more reliable than axios for multipart on RN)
+      const token = await AsyncStorage.getItem('access_token');
+      let failedCount = 0;
       for (const photo of photos) {
         try {
-          await client.post(`/chargers/${chargerId}/photos`, {
-            base64: photo.base64,
-            mime_type: photo.mime || 'image/jpeg',
+          const form = new FormData();
+          form.append('photo', { uri: photo.uri, name: 'photo.jpg', type: photo.mime || 'image/jpeg' });
+          const resp = await fetch(`${API_BASE_URL}/chargers/${chargerId}/photos`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: form,
           });
+          if (!resp.ok) failedCount++;
         } catch {
-          // Non-fatal — charger created, some photos may fail
+          failedCount++;
         }
+      }
+      if (failedCount > 0) {
+        Alert.alert('Photos warning', `${failedCount} photo(s) failed to upload. You can add them later from My Chargers.`);
       }
 
       Alert.alert('Listed! 🎉', 'Your charger is now live on Charge.in', [
@@ -172,8 +197,8 @@ export default function ListChargerScreen({ navigation }) {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
     >
     <View style={styles.container}>
       {/* Step indicator */}
@@ -274,7 +299,7 @@ export default function ListChargerScreen({ navigation }) {
               </Text>
             </View>
             <Text style={styles.photoHint}>
-              Include: charger unit, socket close-up, parking area, access gate, surroundings
+              Include: charger unit, socket close-up, parking area (min 3 photos)
             </Text>
 
             {/* Photo grid */}

@@ -4,6 +4,7 @@ import {
   Alert, ActivityIndicator, ScrollView, TextInput, Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useAuthStore } from '../store/authStore';
 import { apiGetMe, apiUpdateMe, apiUploadAvatar } from '../api/users';
 import { colors } from '../constants/colors';
@@ -65,7 +66,10 @@ export default function ProfileScreen({ navigation }) {
     setUploadingPhoto(true);
     try {
       const asset = result.assets[0];
-      const { data } = await apiUploadAvatar(asset.uri, asset.mimeType || 'image/jpeg');
+      const jpeg = await ImageManipulator.manipulateAsync(
+        asset.uri, [], { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      const { data } = await apiUploadAvatar(jpeg.uri, 'image/jpeg');
       setProfile(p => ({ ...p, avatar_url: data.avatar_url }));
     } catch (err) {
       Alert.alert('Upload failed', err.response?.data?.error || 'Could not upload photo');
