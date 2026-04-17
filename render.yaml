@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: charge-in
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
