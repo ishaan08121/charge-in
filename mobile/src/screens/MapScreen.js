@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, ActivityIndicator,
   TouchableOpacity, TextInput, Platform, Keyboard, Animated,
-  Dimensions,
+  Dimensions, StatusBar,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
@@ -262,7 +262,9 @@ const styles = StyleSheet.create({
   placeholderText: { color: colors.textSecondary, fontSize: 14, marginTop: 8 },
 
   floatRight: {
-    position: 'absolute', top: 12, right: 14,
+    position: 'absolute',
+    top: (StatusBar.currentHeight || 0) + 12,
+    right: 14,
     alignItems: 'center', gap: 8,
   },
   countPill: {
