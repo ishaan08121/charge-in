@@ -5,18 +5,21 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useAuthStore } from './src/store/authStore';
+import { useThemeStore } from './src/store/themeStore';
 import AppNavigator from './src/navigation/AppNavigator';
 import AuthNavigator from './src/navigation/AuthNavigator';
-import { colors } from './src/constants/colors';
+import { useColors } from './src/constants/colors';
 import usePushNotifications from './src/hooks/usePushNotifications';
 
 function AppWithNotifications() {
   const navigationRef = useRef(null);
+  const colors = useColors();
+  const isDark = useThemeStore((s) => s.isDark);
   usePushNotifications(navigationRef.current);
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <StatusBar style="light" backgroundColor={colors.bg} />
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.bg} />
       <AppNavigator />
     </NavigationContainer>
   );
@@ -24,9 +27,13 @@ function AppWithNotifications() {
 
 export default function App() {
   const { user, isLoading, hydrate } = useAuthStore();
+  const hydrateTheme = useThemeStore((s) => s.hydrate);
+  const colors = useColors();
+  const isDark = useThemeStore((s) => s.isDark);
 
   useEffect(() => {
     hydrate();
+    hydrateTheme();
   }, []);
 
   if (isLoading) {
@@ -40,7 +47,7 @@ export default function App() {
   if (!user) {
     return (
       <NavigationContainer>
-        <StatusBar style="light" backgroundColor={colors.bg} />
+        <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.bg} />
         <AuthNavigator />
       </NavigationContainer>
     );

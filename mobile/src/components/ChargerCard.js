@@ -1,88 +1,89 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
-function Stars({ rating }) {
+function Stars({ rating, starColor }) {
   const full = Math.floor(rating);
   const stars = '★'.repeat(full) + '☆'.repeat(5 - full);
-  return <Text style={styles.stars}>{stars}</Text>;
+  return <Text style={{ color: starColor, fontSize: 13, letterSpacing: 1 }}>{stars}</Text>;
 }
 
 export default function ChargerCard({ charger, onPress }) {
+  const c = useColors();
+  const s = makeStyles(c);
   const distKm = charger.distance_m ? (charger.distance_m / 1000).toFixed(1) : null;
-
   const photoUrl = charger.charger_photos?.[0]?.url;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.75}>
       {photoUrl && (
-        <Image source={{ uri: photoUrl }} style={styles.photo} resizeMode="cover" />
+        <Image source={{ uri: photoUrl }} style={s.photo} resizeMode="cover" />
       )}
-      <View style={styles.row}>
-        <View style={styles.titleCol}>
-          <Text style={styles.title} numberOfLines={1}>{charger.title}</Text>
-          <Text style={styles.location}>
+      <View style={s.row}>
+        <View style={s.titleCol}>
+          <Text style={s.title} numberOfLines={1}>{charger.title}</Text>
+          <Text style={s.location}>
             {distKm ? `${distKm} km · ` : ''}{charger.city || charger.address || ''}
           </Text>
         </View>
-        <View style={styles.priceBadge}>
-          <Text style={styles.priceText}>₹{charger.price_per_kwh}/unit</Text>
+        <View style={s.priceBadge}>
+          <Text style={s.priceText}>₹{charger.price_per_kwh}/unit</Text>
         </View>
       </View>
 
-      <View style={styles.tagsRow}>
+      <View style={s.tagsRow}>
         {charger.average_rating != null && (
           <>
-            <Stars rating={parseFloat(charger.average_rating)} />
-            <Text style={styles.ratingNum}>{charger.average_rating}</Text>
+            <Stars rating={parseFloat(charger.average_rating)} starColor={c.star} />
+            <Text style={s.ratingNum}>{charger.average_rating}</Text>
           </>
         )}
         {charger.connector_types?.map((ct) => (
-          <View key={ct} style={styles.tag}>
-            <Text style={styles.tagText}>{ct}</Text>
+          <View key={ct} style={s.tag}>
+            <Text style={s.tagText}>{ct}</Text>
           </View>
         ))}
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{charger.power_kw} kW</Text>
+        <View style={s.tag}>
+          <Text style={s.tagText}>{charger.power_kw} kW</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderColor: colors.cardBorder,
-    borderWidth: 1,
-    borderRadius: 14,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 10,
-  },
-  photo: {
-    width: '100%',
-    height: 140,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, padding: 16, paddingBottom: 0 },
-  titleCol: { flex: 1, marginRight: 12 },
-  title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 3 },
-  location: { fontSize: 13, color: colors.textSecondary },
-  priceBadge: {
-    backgroundColor: colors.primaryDim,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  priceText: { color: colors.primary, fontWeight: '700', fontSize: 13 },
-  tagsRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 10 },
-  stars: { color: colors.star, fontSize: 13, letterSpacing: 1 },
-  ratingNum: { color: colors.textSecondary, fontSize: 13, marginRight: 4 },
-  tag: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  tagText: { color: colors.textSecondary, fontSize: 12 },
-});
+function makeStyles(c) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: c.card,
+      borderColor: c.cardBorder,
+      borderWidth: 1,
+      borderRadius: 14,
+      overflow: 'hidden',
+      marginHorizontal: 16,
+      marginBottom: 10,
+    },
+    photo: { width: '100%', height: 140 },
+    row: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      alignItems: 'flex-start', padding: 16, paddingBottom: 0,
+    },
+    titleCol: { flex: 1, marginRight: 12 },
+    title: { fontSize: 16, fontWeight: '700', color: c.textPrimary, marginBottom: 3 },
+    location: { fontSize: 13, color: c.textSecondary },
+    priceBadge: {
+      backgroundColor: c.primaryDim, borderRadius: 20,
+      paddingHorizontal: 10, paddingVertical: 4,
+    },
+    priceText: { color: c.primary, fontWeight: '700', fontSize: 13 },
+    tagsRow: {
+      flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap',
+      gap: 6, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 10,
+    },
+    ratingNum: { color: c.textSecondary, fontSize: 13, marginRight: 4 },
+    tag: {
+      backgroundColor: c.surface, borderRadius: 20,
+      paddingHorizontal: 10, paddingVertical: 4,
+    },
+    tagText: { color: c.textSecondary, fontSize: 12 },
+  });
+}

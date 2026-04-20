@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, ScrollView, TextInput, Image,
+  Alert, ActivityIndicator, ScrollView, TextInput, Image, Switch,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { apiGetMe, apiUpdateMe, apiUploadAvatar } from '../api/users';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 export default function ProfileScreen({ navigation }) {
+  const colors = useColors();
   const { logout } = useAuthStore();
+  const { isDark, toggleTheme } = useThemeStore();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -85,6 +88,8 @@ export default function ProfileScreen({ navigation }) {
     ]);
   }
 
+  const styles = makeStyles(colors);
+
   if (!profile) {
     return (
       <View style={styles.center}>
@@ -144,11 +149,11 @@ export default function ProfileScreen({ navigation }) {
         </>
       ) : (
         <>
-          <InfoRow label="Name" value={profile.full_name || '—'} />
-          <InfoRow label="Email" value={profile.email || '—'} />
-          <InfoRow label="Phone" value={profile.phone || '—'} />
-          <InfoRow label="UPI ID" value={profile.upi_id || 'Not set'} />
-          <InfoRow label="Account Type" value={profile.is_host ? '⚡ Host + User' : 'User'} />
+          <InfoRow label="Name" value={profile.full_name || '—'} c={colors} />
+          <InfoRow label="Email" value={profile.email || '—'} c={colors} />
+          <InfoRow label="Phone" value={profile.phone || '—'} c={colors} />
+          <InfoRow label="UPI ID" value={profile.upi_id || 'Not set'} c={colors} />
+          <InfoRow label="Account Type" value={profile.is_host ? '⚡ Host + User' : 'User'} c={colors} />
 
           <TouchableOpacity style={styles.btn} onPress={() => setEditing(true)}>
             <Text style={styles.btnText}>Edit Profile</Text>
@@ -219,6 +224,23 @@ export default function ProfileScreen({ navigation }) {
       </TouchableOpacity>
 
       <View style={styles.divider} />
+      <Text style={styles.sectionLabel}>Appearance</Text>
+
+      <View style={styles.hostCard}>
+        <Text style={styles.hostCardIcon}>{isDark ? '🌙' : '☀️'}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.hostCardTitle}>{isDark ? 'Dark Mode' : 'Light Mode'}</Text>
+          <Text style={styles.hostCardSub}>Toggle app theme</Text>
+        </View>
+        <Switch
+          value={isDark}
+          onValueChange={toggleTheme}
+          trackColor={{ false: colors.cardBorder, true: colors.primaryDim }}
+          thumbColor={isDark ? colors.primary : colors.textMuted}
+        />
+      </View>
+
+      <View style={styles.divider} />
 
       <TouchableOpacity style={styles.logoutBtn} onPress={confirmLogout}>
         <Text style={styles.logoutText}>Logout</Text>
@@ -227,61 +249,56 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoRow({ label, value, c }) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+    <View style={{ backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Text style={{ color: c.textMuted, fontSize: 13 }}>{label}</Text>
+      <Text style={{ color: c.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: '60%', textAlign: 'right' }} numberOfLines={1}>{value}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
-  heading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 20 },
-  avatarWrap: { alignSelf: 'center', marginBottom: 24 },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: colors.primaryDim, borderColor: colors.primary, borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  avatarImg: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.primary },
-  avatarText: { fontSize: 30, fontWeight: '800', color: colors.primary },
-  avatarBadge: {
-    position: 'absolute', bottom: 0, right: 0,
-    width: 26, height: 26, borderRadius: 13,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
-  },
-  avatarBadgeText: { fontSize: 13 },
-  infoRow: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, padding: 14, marginBottom: 8,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  infoLabel: { color: colors.textMuted, fontSize: 13 },
-  infoValue: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
-  label: { color: colors.textSecondary, fontSize: 13, marginBottom: 6, marginTop: 12, fontWeight: '500' },
-  input: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, paddingHorizontal: 16,
-    paddingVertical: 13, fontSize: 15, marginBottom: 4,
-  },
-  btn: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 14, marginBottom: 10 },
-  btnText: { color: '#000', fontWeight: '700', fontSize: 15 },
-  btnOutline: { borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 4 },
-  btnOutlineText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15 },
-  divider: { height: 1, backgroundColor: colors.cardBorder, marginVertical: 20 },
-  sectionLabel: { fontSize: 13, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
-  hostCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 14, padding: 16, marginBottom: 10,
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-  },
-  hostCardIcon: { fontSize: 24 },
-  hostCardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 2 },
-  hostCardSub: { fontSize: 12, color: colors.textSecondary },
-  chevron: { fontSize: 22, color: colors.textMuted },
-  logoutBtn: { borderColor: colors.danger + '44', borderWidth: 1, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
-  logoutText: { color: colors.danger, fontWeight: '600', fontSize: 15 },
-});
+function makeStyles(c) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
+    center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
+    heading: { fontSize: 22, fontWeight: '800', color: c.textPrimary, marginBottom: 20 },
+    avatarWrap: { alignSelf: 'center', marginBottom: 24 },
+    avatar: {
+      width: 80, height: 80, borderRadius: 40,
+      backgroundColor: c.primaryDim, borderColor: c.primary, borderWidth: 2,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    avatarImg: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: c.primary },
+    avatarText: { fontSize: 30, fontWeight: '800', color: c.primary },
+    avatarBadge: {
+      position: 'absolute', bottom: 0, right: 0,
+      width: 26, height: 26, borderRadius: 13,
+      backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center',
+    },
+    avatarBadgeText: { fontSize: 13 },
+    label: { color: c.textSecondary, fontSize: 13, marginBottom: 6, marginTop: 12, fontWeight: '500' },
+    input: {
+      backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+      borderRadius: 12, color: c.textPrimary, paddingHorizontal: 16,
+      paddingVertical: 13, fontSize: 15, marginBottom: 4,
+    },
+    btn: { backgroundColor: c.primary, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 14, marginBottom: 10 },
+    btnText: { color: '#000', fontWeight: '700', fontSize: 15 },
+    btnOutline: { borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 4 },
+    btnOutlineText: { color: c.textSecondary, fontWeight: '600', fontSize: 15 },
+    divider: { height: 1, backgroundColor: c.cardBorder, marginVertical: 20 },
+    sectionLabel: { fontSize: 13, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+    hostCard: {
+      backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+      borderRadius: 14, padding: 16, marginBottom: 10,
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+    },
+    hostCardIcon: { fontSize: 24 },
+    hostCardTitle: { fontSize: 15, fontWeight: '700', color: c.textPrimary, marginBottom: 2 },
+    hostCardSub: { fontSize: 12, color: c.textSecondary },
+    chevron: { fontSize: 22, color: c.textMuted },
+    logoutBtn: { borderColor: c.danger + '44', borderWidth: 1, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
+    logoutText: { color: c.danger, fontWeight: '600', fontSize: 15 },
+  });
+}
