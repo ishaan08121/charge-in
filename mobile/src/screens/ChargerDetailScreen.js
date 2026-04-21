@@ -1,25 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, Image, Dimensions,
+  ActivityIndicator, Alert, Image, Dimensions, Linking,
 } from 'react-native';
 import { apiGetCharger, apiGetReviews } from '../api/chargers';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
-function Stars({ rating, size = 14 }) {
+function Stars({ rating, size = 14, starColor }) {
   const full = Math.floor(rating);
   const half = rating % 1 >= 0.5;
   return (
-    <Text style={{ color: colors.star, fontSize: size }}>
+    <Text style={{ color: starColor, fontSize: size }}>
       {'★'.repeat(full)}{half ? '½' : ''}{'☆'.repeat(5 - full - (half ? 1 : 0))}
     </Text>
   );
 }
 
 export default function ChargerDetailScreen({ route, navigation }) {
+  const colors = useColors();
   const { chargerId, chargerLat, chargerLng } = route.params;
+
+  function openMaps() {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${chargerLat},${chargerLng}&travelmode=driving`;
+    Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open Google Maps'));
+  }
   const [charger, setCharger] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [avgRating, setAvgRating] = useState(null);
@@ -44,6 +50,8 @@ export default function ChargerDetailScreen({ route, navigation }) {
     })();
   }, [chargerId]);
 
+  const styles = makeStyles(colors);
+
   if (loading) {
     return <View style={styles.center}><ActivityIndicator color={colors.primary} size="large" /></View>;
   }
@@ -52,7 +60,7 @@ export default function ChargerDetailScreen({ route, navigation }) {
   const photos = charger.charger_photos || [];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingBottom: 0 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
 
         {/* Photo gallery */}
@@ -108,6 +116,7 @@ export default function ChargerDetailScreen({ route, navigation }) {
                 value={`${avgRating} (${reviews.length} review${reviews.length !== 1 ? 's' : ''})`}
                 star
                 rating={parseFloat(avgRating)}
+                starColor={colors.star}
               />
             )}
             {charger.description && (
@@ -136,7 +145,7 @@ export default function ChargerDetailScreen({ route, navigation }) {
                 <View key={r.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeader}>
                     <Text style={styles.reviewerName}>{r.reviewer?.full_name || 'User'}</Text>
-                    <Stars rating={r.rating} />
+                    <Stars rating={r.rating} starColor={colors.star} />
                   </View>
                   {r.comment && <Text style={styles.reviewComment}>{r.comment}</Text>}
                 </View>
@@ -146,107 +155,109 @@ export default function ChargerDetailScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* Book CTA */}
-      {charger.is_available && (
-        <View style={styles.ctaBar}>
-          <View>
-            <Text style={styles.ctaPrice}>₹{charger.price_per_kwh}/kWh</Text>
-            <Text style={styles.ctaSub}>{charger.power_kw} kW · {charger.connector_types?.[0]}</Text>
-          </View>
+      {/* Bottom CTA bar — always show Navigate, show Book only if available */}
+      <View style={styles.ctaBar}>
+        <TouchableOpacity style={styles.navigateBtn} onPress={openMaps} activeOpacity={0.85}>
+          <Text style={styles.navigateIcon}>🧭</Text>
+          <Text style={styles.navigateText}>Navigate</Text>
+        </TouchableOpacity>
+        {charger.is_available ? (
           <TouchableOpacity
             style={styles.cta}
             onPress={() => navigation.navigate('BookSlot', { charger, chargerLat, chargerLng })}
+            activeOpacity={0.85}
           >
             <Text style={styles.ctaText}>Book a Slot</Text>
           </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function InfoRow({ label, value, star, rating }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <View style={styles.infoRight}>
-        {star && rating && <Stars rating={rating} size={13} />}
-        <Text style={styles.infoValue}>{value}</Text>
+        ) : (
+          <View style={styles.ctaUnavailable}>
+            <Text style={styles.ctaUnavailableText}>Currently Occupied</Text>
+          </View>
+        )}
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
-  photo: { width, height: 240 },
-  photoPlaceholder: { width, height: 200, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
-  photoCount: {
-    position: 'absolute', top: 200, right: 14,
-    backgroundColor: '#000000aa', borderRadius: 12,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  photoCountText: { color: '#fff', fontSize: 12 },
+function InfoRow({ label, value, star, rating, starColor }) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#2a2a2a' }}>
+      <Text style={{ color: '#999', fontSize: 13 }}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {star && rating && <Stars rating={rating} size={13} starColor={starColor} />}
+        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', maxWidth: 200, textAlign: 'right' }}>{value}</Text>
+      </View>
+    </View>
+  );
+}
 
-  body: { padding: 18 },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 12 },
-  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
-  location: { fontSize: 13, color: colors.textSecondary },
-  priceBadge: { backgroundColor: colors.primaryDim, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
-  priceText: { color: colors.primary, fontWeight: '800', fontSize: 14 },
-
-  availBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
-    marginBottom: 16,
-  },
-  availDot: { width: 8, height: 8, borderRadius: 4 },
-  availText: { fontSize: 13, fontWeight: '600' },
-
-  infoTable: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
-    borderWidth: 1, borderRadius: 14, overflow: 'hidden', marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 13,
-    borderBottomWidth: 1, borderBottomColor: colors.cardBorder,
-  },
-  infoLabel: { color: colors.textSecondary, fontSize: 13 },
-  infoRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  infoValue: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: 200, textAlign: 'right' },
-
-  hostCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center',
-    gap: 12, marginBottom: 20,
-  },
-  hostAvatar: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: colors.primaryDim, borderColor: colors.primary, borderWidth: 1.5,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  hostAvatarText: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  hostLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  hostName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-
-  sectionLabel: { fontSize: 13, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
-  reviewCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, padding: 14, marginBottom: 8,
-  },
-  reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  reviewerName: { color: colors.textPrimary, fontWeight: '600', fontSize: 14 },
-  reviewComment: { color: colors.textSecondary, fontSize: 13, lineHeight: 20 },
-
-  ctaBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.cardBorder,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 14,
-  },
-  ctaPrice: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
-  ctaSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  cta: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 28 },
-  ctaText: { color: '#000', fontWeight: '800', fontSize: 15 },
-});
+function makeStyles(c) {
+  return StyleSheet.create({
+    center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
+    photo: { width, height: 240 },
+    photoPlaceholder: { width, height: 200, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center' },
+    photoCount: {
+      position: 'absolute', top: 200, right: 14,
+      backgroundColor: '#000000aa', borderRadius: 12,
+      paddingHorizontal: 10, paddingVertical: 4,
+    },
+    photoCountText: { color: '#fff', fontSize: 12 },
+    body: { padding: 18 },
+    headerRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 12 },
+    title: { fontSize: 22, fontWeight: '800', color: c.textPrimary, marginBottom: 4 },
+    location: { fontSize: 13, color: c.textSecondary },
+    priceBadge: { backgroundColor: c.primaryDim, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
+    priceText: { color: c.primary, fontWeight: '800', fontSize: 14 },
+    availBadge: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 16,
+    },
+    availDot: { width: 8, height: 8, borderRadius: 4 },
+    availText: { fontSize: 13, fontWeight: '600' },
+    infoTable: {
+      backgroundColor: c.card, borderColor: c.cardBorder,
+      borderWidth: 1, borderRadius: 14, overflow: 'hidden', marginBottom: 16,
+    },
+    hostCard: {
+      backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+      borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center',
+      gap: 12, marginBottom: 20,
+    },
+    hostAvatar: {
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: c.primaryDim, borderColor: c.primary, borderWidth: 1.5,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    hostAvatarText: { fontSize: 18, fontWeight: '700', color: c.primary },
+    hostLabel: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+    hostName: { fontSize: 15, fontWeight: '700', color: c.textPrimary },
+    sectionLabel: { fontSize: 13, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+    reviewCard: {
+      backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+      borderRadius: 12, padding: 14, marginBottom: 8,
+    },
+    reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+    reviewerName: { color: c.textPrimary, fontWeight: '600', fontSize: 14 },
+    reviewComment: { color: c.textSecondary, fontSize: 13, lineHeight: 20 },
+    ctaBar: {
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      backgroundColor: c.card, borderTopWidth: 1, borderTopColor: c.cardBorder,
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      paddingHorizontal: 16, paddingVertical: 14,
+    },
+    navigateBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      borderWidth: 1.5, borderColor: c.cardBorder, borderRadius: 14,
+      paddingVertical: 13, paddingHorizontal: 18,
+    },
+    navigateIcon: { fontSize: 16 },
+    navigateText: { color: c.textPrimary, fontWeight: '700', fontSize: 15 },
+    cta: { flex: 1, backgroundColor: c.primary, borderRadius: 14, paddingVertical: 13, alignItems: 'center' },
+    ctaText: { color: '#000', fontWeight: '800', fontSize: 15 },
+    ctaUnavailable: {
+      flex: 1, borderRadius: 14, paddingVertical: 13, alignItems: 'center',
+      backgroundColor: c.danger + '22', borderWidth: 1, borderColor: c.danger + '44',
+    },
+    ctaUnavailableText: { color: c.danger, fontWeight: '700', fontSize: 14 },
+  });
+}

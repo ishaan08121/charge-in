@@ -21,7 +21,7 @@ function buildLeafletHTML(userLat, userLng, chargers) {
     .map(c => `
       L.circleMarker([${parseFloat(c.latitude)}, ${parseFloat(c.longitude)}], {
         radius: 14,
-        fillColor: '${c.is_available ? '#C8FF00' : '#4DA6FF'}',
+        fillColor: '${c.is_available ? '#00c853' : '#ef5350'}',
         color: '#fff',
         weight: 2.5,
         fillOpacity: 1,
@@ -80,7 +80,8 @@ export default function MapScreen({ navigation }) {
   const sheetAnim = useRef(new Animated.Value(SHEET_OPEN)).current;
   const [sheetOpen, setSheetOpen] = useState(true);
 
-  const { chargers, loading, fetchNearby } = useChargerStore();
+  const { chargers, loading, fetchNearby, availableOnly, setFilter, getFiltered } = useChargerStore();
+  const filteredChargers = getFiltered();
 
   useEffect(() => { detectMyLocation(); }, []);
 
@@ -220,14 +221,24 @@ export default function MapScreen({ navigation }) {
 
             {locationError && <Text style={s.errorText}>{locationError}</Text>}
 
-            <TouchableOpacity style={s.filterBtn} onPress={() => setFilterVisible(true)} activeOpacity={0.75}>
-              <Text style={s.filterBtnText}>⚙  Filters</Text>
-            </TouchableOpacity>
+            <View style={s.filterRow}>
+              <TouchableOpacity
+                style={[s.availChip, availableOnly && s.availChipActive]}
+                onPress={() => setFilter('availableOnly', !availableOnly)}
+                activeOpacity={0.75}
+              >
+                <View style={[s.availDot, { backgroundColor: availableOnly ? '#00c853' : colors.textMuted }]} />
+                <Text style={[s.availChipText, availableOnly && s.availChipTextActive]}>Available now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.filterBtn} onPress={() => setFilterVisible(true)} activeOpacity={0.75}>
+                <Text style={s.filterBtnText}>⚙ Filters</Text>
+              </TouchableOpacity>
+            </View>
 
             {loading && <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />}
 
             <FlatList
-              data={chargers}
+              data={filteredChargers}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <ChargerCard
@@ -310,10 +321,23 @@ function makeStyles(c) {
     },
     searchInput: { flex: 1, color: c.textPrimary, fontSize: 14 },
 
+    filterRow: {
+      flexDirection: 'row', gap: 8,
+      paddingHorizontal: 14, marginBottom: 8,
+    },
+    availChip: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      gap: 6, paddingVertical: 9, borderRadius: 10,
+      borderWidth: 1.5, borderColor: c.cardBorder, backgroundColor: c.filterBg,
+    },
+    availChipActive: { borderColor: '#00c853', backgroundColor: '#00c85322' },
+    availDot: { width: 8, height: 8, borderRadius: 4 },
+    availChipText: { color: c.textSecondary, fontSize: 13, fontWeight: '600' },
+    availChipTextActive: { color: '#00c853' },
     filterBtn: {
-      marginHorizontal: 14, marginBottom: 8, paddingVertical: 9,
+      paddingHorizontal: 16, paddingVertical: 9,
       borderRadius: 10, borderWidth: 1, borderColor: c.cardBorder,
-      backgroundColor: c.filterBg, alignItems: 'center',
+      backgroundColor: c.filterBg, alignItems: 'center', justifyContent: 'center',
     },
     filterBtnText: { color: c.textSecondary, fontSize: 13, fontWeight: '600' },
 

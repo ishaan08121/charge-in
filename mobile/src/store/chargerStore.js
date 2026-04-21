@@ -10,8 +10,18 @@ export const useChargerStore = create((set, get) => ({
   connectorFilter: null,   // null | 'AC' | 'DC'
   radiusKm: 10,
   minRating: null,         // null | 4 | 4.5
+  availableOnly: false,
 
   setFilter: (key, value) => set({ [key]: value }),
+
+  getFiltered: () => {
+    const { chargers, availableOnly, minRating } = get();
+    return chargers.filter(c => {
+      if (availableOnly && !c.is_available) return false;
+      if (minRating && parseFloat(c.average_rating) < minRating) return false;
+      return true;
+    });
+  },
 
   removeCharger: (id) => set(state => ({
     chargers: state.chargers.filter(c => c.id !== id),
