@@ -79,27 +79,27 @@ export default function EditChargerScreen({ route, navigation }) {
         />
       </View>
 
-      <Field label="Charger Title *" value={title} onChangeText={setTitle} placeholder="e.g. Ishaan's Home Charger" />
-      <Field label="Description / Access Instructions" value={description} onChangeText={setDescription} placeholder="Gate code, parking spot, etc." multiline />
-      <Field label="Address" value={address} onChangeText={setAddress} placeholder="Street / building" />
+      <Field label="Charger Title *" value={title} onChangeText={setTitle} placeholder="e.g. Ishaan's Home Charger" styles={styles} colors={colors} />
+      <Field label="Description / Access Instructions" value={description} onChangeText={setDescription} placeholder="Gate code, parking spot, etc." multiline styles={styles} colors={colors} />
+      <Field label="Address" value={address} onChangeText={setAddress} placeholder="Street / building" styles={styles} colors={colors} />
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Field label="City" value={city} onChangeText={setCity} placeholder="Dehradun" />
+          <Field label="City" value={city} onChangeText={setCity} placeholder="Dehradun" styles={styles} colors={colors} />
         </View>
         <View style={{ width: 12 }} />
         <View style={{ flex: 1 }}>
-          <Field label="State" value={state} onChangeText={setState} placeholder="Uttarakhand" />
+          <Field label="State" value={state} onChangeText={setState} placeholder="Uttarakhand" styles={styles} colors={colors} />
         </View>
       </View>
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Field label="Power (kW) *" value={powerKw} onChangeText={setPowerKw} placeholder="3.3" keyboardType="decimal-pad" />
+          <Field label="Power (kW) *" value={powerKw} onChangeText={setPowerKw} placeholder="3.3" keyboardType="decimal-pad" styles={styles} colors={colors} />
         </View>
         <View style={{ width: 12 }} />
         <View style={{ flex: 1 }}>
-          <Field label="Rate (₹/kWh) *" value={pricePerKwh} onChangeText={setPricePerKwh} placeholder="10" keyboardType="decimal-pad" />
+          <Field label="Rate (₹/kWh) *" value={pricePerKwh} onChangeText={setPricePerKwh} placeholder="10" keyboardType="decimal-pad" styles={styles} colors={colors} />
         </View>
       </View>
 
@@ -121,11 +121,11 @@ export default function EditChargerScreen({ route, navigation }) {
       ].map(opt => (
         <TouchableOpacity
           key={opt.value}
-          style={[locTypeStyles.row, locationType === opt.value && locTypeStyles.rowSel]}
+          style={[styles.locTypeRow, locationType === opt.value && styles.locTypeRowSel]}
           onPress={() => setLocationType(opt.value)}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[locTypeStyles.label, locationType === opt.value && locTypeStyles.labelSel]}>{opt.label}</Text>
+            <Text style={[styles.locTypeLabel, locationType === opt.value && styles.locTypeLabelSel]}>{opt.label}</Text>
             <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{opt.sub}</Text>
           </View>
           {locationType === opt.value && <Text style={{ color: colors.primary }}>✓</Text>}
@@ -156,12 +156,12 @@ export default function EditChargerScreen({ route, navigation }) {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, multiline, keyboardType }) {
+function Field({ label, value, onChangeText, placeholder, multiline, keyboardType, styles, colors }) {
   return (
     <View style={{ marginBottom: 14 }}>
-      <Text style={fieldStyles.label}>{label}</Text>
+      <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
-        style={[fieldStyles.input, multiline && { height: 80, textAlignVertical: 'top' }]}
+        style={[styles.fieldInput, multiline && { height: 80, textAlignVertical: 'top' }]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -173,15 +173,6 @@ function Field({ label, value, onChangeText, placeholder, multiline, keyboardTyp
     </View>
   );
 }
-
-const fieldStyles = StyleSheet.create({
-  label: { fontSize: 13, color: colors.textSecondary, fontWeight: '500', marginBottom: 6 },
-  input: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, paddingHorizontal: 14,
-    paddingVertical: 12, fontSize: 15,
-  },
-});
 
 function makeStyles(c) {
   return StyleSheet.create({
@@ -198,6 +189,13 @@ function makeStyles(c) {
 
   row: { flexDirection: 'row' },
 
+  fieldLabel: { fontSize: 13, color: c.textSecondary, fontWeight: '500', marginBottom: 6 },
+  fieldInput: {
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, color: c.textPrimary, paddingHorizontal: 14,
+    paddingVertical: 12, fontSize: 15,
+  },
+
   earningHint: {
     backgroundColor: c.primaryDim, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8, marginBottom: 14,
@@ -208,6 +206,16 @@ function makeStyles(c) {
     fontSize: 12, color: c.textMuted, textTransform: 'uppercase',
     letterSpacing: 0.8, marginBottom: 10,
   },
+
+  locTypeRow: {
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row',
+    alignItems: 'center', gap: 8,
+  },
+  locTypeRowSel: { borderColor: c.primary, backgroundColor: c.primaryDim },
+  locTypeLabel: { fontSize: 14, color: c.textSecondary, fontWeight: '500' },
+  locTypeLabelSel: { color: c.primary, fontWeight: '700' },
+
   connectorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   connChip: {
     backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
@@ -222,16 +230,5 @@ function makeStyles(c) {
     paddingVertical: 16, alignItems: 'center',
   },
   saveBtnText: { color: '#000', fontWeight: '800', fontSize: 16 },
-});
-
-const locTypeStyles = StyleSheet.create({
-  row: {
-    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
-    borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row',
-    alignItems: 'center', gap: 8,
-  },
-  rowSel: { borderColor: c.primary, backgroundColor: c.primaryDim },
-  label: { fontSize: 14, color: c.textSecondary, fontWeight: '500' },
-  labelSel: { color: c.primary, fontWeight: '700' },
 });
 }

@@ -399,6 +399,7 @@ export default function BookSlotScreen({ route, navigation }) {
 }
 
 function Dot({ color, label }) {
+  const colors = useColors();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
@@ -407,6 +408,7 @@ function Dot({ color, label }) {
   );
 }
 function SumRow({ label, value }) {
+  const colors = useColors();
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9 }}>
       <Text style={{ color: colors.textSecondary, fontSize: 14 }}>{label}</Text>
@@ -415,6 +417,7 @@ function SumRow({ label, value }) {
   );
 }
 function EstRow({ label, value, highlight }) {
+  const colors = useColors();
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
       <Text style={{ color: colors.textSecondary, fontSize: 14 }}>{label}</Text>

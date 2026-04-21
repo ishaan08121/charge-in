@@ -77,8 +77,8 @@ export default function EarningsScreen() {
           </View>
           <View style={styles.txRight}>
             <Text style={styles.txAmount}>₹{(p.amount / 100).toFixed(2)}</Text>
-            <View style={[styles.txBadge, { backgroundColor: statusColor(p.status) + '22' }]}>
-              <Text style={[styles.txBadgeText, { color: statusColor(p.status) }]}>
+            <View style={[styles.txBadge, { backgroundColor: statusColor(p.status, colors) + '22' }]}>
+              <Text style={[styles.txBadgeText, { color: statusColor(p.status, colors) }]}>
                 {p.status.toUpperCase()}
               </Text>
             </View>
@@ -89,11 +89,13 @@ export default function EarningsScreen() {
   );
 }
 
-function statusColor(status) {
+function statusColor(status, colors) {
   return status === 'paid' ? colors.primary : status === 'processing' ? '#29B6F6' : status === 'failed' ? colors.danger : '#FFA726';
 }
 
 function StatCard({ label, value, highlight, warn }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={[styles.statCard, highlight && styles.statCardHighlight]}>
       <Text style={styles.statLabel}>{label}</Text>
