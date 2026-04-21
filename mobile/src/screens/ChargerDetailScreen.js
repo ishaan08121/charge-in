@@ -107,11 +107,12 @@ export default function ChargerDetailScreen({ route, navigation }) {
 
           {/* Info table */}
           <View style={styles.infoTable}>
-            <InfoRow label="Charger type" value={`${charger.connector_types?.join(', ') || '—'} · ${charger.power_kw} kW`} />
-            <InfoRow label="Connector" value={charger.connector_types?.join(', ') || '—'} />
-            <InfoRow label="Rate" value={`₹${charger.price_per_kwh}/kWh`} />
+            <InfoRow c={colors} label="Charger type" value={`${charger.connector_types?.join(', ') || '—'} · ${charger.power_kw} kW`} />
+            <InfoRow c={colors} label="Connector" value={charger.connector_types?.join(', ') || '—'} />
+            <InfoRow c={colors} label="Rate" value={`₹${charger.price_per_kwh}/kWh`} />
             {avgRating && (
               <InfoRow
+                c={colors}
                 label="Host rating"
                 value={`${avgRating} (${reviews.length} review${reviews.length !== 1 ? 's' : ''})`}
                 star
@@ -120,7 +121,7 @@ export default function ChargerDetailScreen({ route, navigation }) {
               />
             )}
             {charger.description && (
-              <InfoRow label="Access" value={charger.description} />
+              <InfoRow c={colors} label="Access" value={charger.description} />
             )}
           </View>
 
@@ -179,13 +180,13 @@ export default function ChargerDetailScreen({ route, navigation }) {
   );
 }
 
-function InfoRow({ label, value, star, rating, starColor }) {
+function InfoRow({ label, value, star, rating, starColor, c }) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#2a2a2a' }}>
-      <Text style={{ color: '#999', fontSize: 13 }}>{label}</Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: c.cardBorder }}>
+      <Text style={{ color: c.textSecondary, fontSize: 13 }}>{label}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {star && rating && <Stars rating={rating} size={13} starColor={starColor} />}
-        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', maxWidth: 200, textAlign: 'right' }}>{value}</Text>
+        <Text style={{ color: c.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: 200, textAlign: 'right' }}>{value}</Text>
       </View>
     </View>
   );

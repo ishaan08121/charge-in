@@ -299,7 +299,7 @@ function makeStyles(c) {
       borderWidth: 1, borderRadius: 12,
       width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
     },
-    iconBtnText: { fontSize: 20 },
+    iconBtnText: { fontSize: 20, color: c.textPrimary },
 
     sheet: {
       position: 'absolute', bottom: 0, left: 0, right: 0,

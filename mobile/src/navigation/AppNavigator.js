@@ -21,21 +21,21 @@ import EarningsScreen from '../screens/host/EarningsScreen';
 import EVProfileScreen from '../screens/EVProfileScreen';
 import ChargingCalculatorScreen from '../screens/ChargingCalculatorScreen';
 
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 const MapStack = createNativeStackNavigator();
 const BookingsStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 
-const screenOptions = {
-  headerStyle: { backgroundColor: colors.card },
-  headerTintColor: colors.textPrimary,
-  headerTitleStyle: { fontWeight: '700' },
-  contentStyle: { backgroundColor: colors.bg },
-};
-
 function MapStackNavigator() {
+  const c = useColors();
+  const screenOptions = {
+    headerStyle: { backgroundColor: c.card },
+    headerTintColor: c.textPrimary,
+    headerTitleStyle: { fontWeight: '700' },
+    contentStyle: { backgroundColor: c.bg },
+  };
   return (
     <MapStack.Navigator screenOptions={screenOptions}>
       <MapStack.Screen name="Map" component={MapScreen} options={{ title: 'Charge.in ⚡' }} />
@@ -47,6 +47,13 @@ function MapStackNavigator() {
 }
 
 function BookingsStackNavigator() {
+  const c = useColors();
+  const screenOptions = {
+    headerStyle: { backgroundColor: c.card },
+    headerTintColor: c.textPrimary,
+    headerTitleStyle: { fontWeight: '700' },
+    contentStyle: { backgroundColor: c.bg },
+  };
   return (
     <BookingsStack.Navigator screenOptions={screenOptions}>
       <BookingsStack.Screen name="Bookings" component={BookingsScreen} options={{ title: 'My Bookings' }} />
@@ -59,6 +66,13 @@ function BookingsStackNavigator() {
 }
 
 function ProfileStackNavigator() {
+  const c = useColors();
+  const screenOptions = {
+    headerStyle: { backgroundColor: c.card },
+    headerTintColor: c.textPrimary,
+    headerTitleStyle: { fontWeight: '700' },
+    contentStyle: { backgroundColor: c.bg },
+  };
   return (
     <ProfileStack.Navigator screenOptions={screenOptions}>
       <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
@@ -74,6 +88,7 @@ function ProfileStackNavigator() {
 }
 
 export default function AppNavigator() {
+  const c = useColors();
   const [activeCount, setActiveCount] = useState(0);
 
   useEffect(() => {
@@ -89,7 +104,7 @@ export default function AppNavigator() {
       } catch {}
     }
     checkActive();
-    const interval = setInterval(checkActive, 30000); // poll every 30s
+    const interval = setInterval(checkActive, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -98,13 +113,13 @@ export default function AppNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor: colors.cardBorder,
+          backgroundColor: c.card,
+          borderTopColor: c.cardBorder,
           height: 60,
           paddingBottom: 8,
         },
-        tabBarActiveTintColor: colors.tabActive,
-        tabBarInactiveTintColor: colors.tabInactive,
+        tabBarActiveTintColor: c.tabActive,
+        tabBarInactiveTintColor: c.tabInactive,
         tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
       }}
     >
@@ -124,7 +139,7 @@ export default function AppNavigator() {
               {activeCount > 0 && (
                 <View style={{
                   position: 'absolute', top: -4, right: -8,
-                  backgroundColor: colors.danger, borderRadius: 8,
+                  backgroundColor: c.danger, borderRadius: 8,
                   minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
                   paddingHorizontal: 3,
                 }}>
