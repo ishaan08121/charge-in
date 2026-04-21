@@ -4,7 +4,7 @@ import {
   TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { apiGetMe, apiUpdateMe } from '../api/users';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const CONNECTOR_TYPES = ['CCS2', 'CHAdeMO', 'Type 2', 'GB/T', 'Type 1'];
 
@@ -27,6 +27,8 @@ const POPULAR_EVS = [
 ];
 
 export default function EVProfileScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showQuickPick, setShowQuickPick] = useState(false);
@@ -183,58 +185,60 @@ export default function EVProfileScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 20, paddingBottom: 50 },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
 
-  subtitle: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 20 },
+  subtitle: { color: c.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 20 },
 
   quickPickBtn: {
-    backgroundColor: colors.primaryDim, borderRadius: 12,
+    backgroundColor: c.primaryDim, borderRadius: 12,
     paddingVertical: 12, paddingHorizontal: 16, marginBottom: 16,
   },
-  quickPickText: { color: colors.primary, fontWeight: '600', fontSize: 14, textAlign: 'center' },
+  quickPickText: { color: c.primary, fontWeight: '600', fontSize: 14, textAlign: 'center' },
 
   presetList: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 14, overflow: 'hidden', marginBottom: 20,
   },
   presetItem: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13,
-    borderBottomWidth: 1, borderBottomColor: colors.cardBorder,
+    borderBottomWidth: 1, borderBottomColor: c.cardBorder,
   },
-  presetName: { color: colors.textPrimary, fontWeight: '600', fontSize: 14 },
-  presetSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  presetArrow: { color: colors.textMuted, fontSize: 20 },
+  presetName: { color: c.textPrimary, fontWeight: '600', fontSize: 14 },
+  presetSub: { color: c.textMuted, fontSize: 12, marginTop: 2 },
+  presetArrow: { color: c.textMuted, fontSize: 20 },
 
-  label: { color: colors.textSecondary, fontSize: 13, fontWeight: '500', marginBottom: 6, marginTop: 16 },
+  label: { color: c.textSecondary, fontSize: 13, fontWeight: '500', marginBottom: 6, marginTop: 16 },
   input: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, paddingHorizontal: 16,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, color: c.textPrimary, paddingHorizontal: 16,
     paddingVertical: 13, fontSize: 15,
   },
 
   connectorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   connectorChip: {
-    borderColor: colors.cardBorder, borderWidth: 1,
+    borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8,
   },
-  connectorChipActive: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  connectorChipText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
-  connectorChipTextActive: { color: colors.primary, fontWeight: '700' },
+  connectorChipActive: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  connectorChipText: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
+  connectorChipTextActive: { color: c.primary, fontWeight: '700' },
 
   saveBtn: {
-    backgroundColor: colors.primary, borderRadius: 14,
+    backgroundColor: c.primary, borderRadius: 14,
     paddingVertical: 16, alignItems: 'center', marginTop: 28,
   },
   saveBtnText: { color: '#000', fontWeight: '800', fontSize: 16 },
 
   previewCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, marginTop: 20,
   },
-  previewLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
-  previewName: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
-  previewSub: { fontSize: 13, color: colors.textSecondary },
+  previewLabel: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
+  previewName: { fontSize: 18, fontWeight: '800', color: c.textPrimary, marginBottom: 4 },
+  previewSub: { fontSize: 13, color: c.textSecondary },
 });
+}

@@ -5,11 +5,13 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { apiUpdateCharger } from '../../api/chargers';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 const CONNECTOR_OPTIONS = ['Type 1', 'Type 2', 'CCS1', 'CCS2', 'CHAdeMO', 'GB/T'];
 
 export default function EditChargerScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { charger } = route.params;
 
   const [title, setTitle] = useState(charger.title || '');
@@ -181,41 +183,42 @@ const fieldStyles = StyleSheet.create({
   },
 });
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 20, paddingBottom: 50 },
 
   availRow: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 20,
   },
-  availLabel: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 2 },
-  availSub: { fontSize: 12, color: colors.textMuted },
+  availLabel: { fontSize: 15, fontWeight: '700', color: c.textPrimary, marginBottom: 2 },
+  availSub: { fontSize: 12, color: c.textMuted },
 
   row: { flexDirection: 'row' },
 
   earningHint: {
-    backgroundColor: colors.primaryDim, borderRadius: 10,
+    backgroundColor: c.primaryDim, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8, marginBottom: 14,
   },
-  earningHintText: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+  earningHintText: { color: c.primary, fontSize: 13, fontWeight: '600' },
 
   sectionLabel: {
-    fontSize: 12, color: colors.textMuted, textTransform: 'uppercase',
+    fontSize: 12, color: c.textMuted, textTransform: 'uppercase',
     letterSpacing: 0.8, marginBottom: 10,
   },
   connectorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   connChip: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9,
   },
-  connChipActive: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  connText: { color: colors.textSecondary, fontWeight: '600', fontSize: 14 },
-  connTextActive: { color: colors.primary },
+  connChipActive: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  connText: { color: c.textSecondary, fontWeight: '600', fontSize: 14 },
+  connTextActive: { color: c.primary },
 
   saveBtn: {
-    backgroundColor: colors.primary, borderRadius: 14,
+    backgroundColor: c.primary, borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
   saveBtnText: { color: '#000', fontWeight: '800', fontSize: 16 },
@@ -223,11 +226,12 @@ const styles = StyleSheet.create({
 
 const locTypeStyles = StyleSheet.create({
   row: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row',
     alignItems: 'center', gap: 8,
   },
-  rowSel: { borderColor: colors.primary, backgroundColor: colors.primaryDim },
-  label: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
-  labelSel: { color: colors.primary, fontWeight: '700' },
+  rowSel: { borderColor: c.primary, backgroundColor: c.primaryDim },
+  label: { fontSize: 14, color: c.textSecondary, fontWeight: '500' },
+  labelSel: { color: c.primary, fontWeight: '700' },
 });
+}

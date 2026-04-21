@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 export default function BookingConfirmedScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { booking } = route.params;
 
   return (
@@ -38,21 +40,23 @@ export default function BookingConfirmedScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 32 },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center', padding: 32 },
   icon: { fontSize: 56, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, marginBottom: 8, textAlign: 'center' },
-  sub: { fontSize: 15, color: colors.textSecondary, textAlign: 'center', marginBottom: 4 },
-  sub2: { fontSize: 13, color: colors.textMuted, textAlign: 'center', marginBottom: 30 },
+  title: { fontSize: 26, fontWeight: '800', color: c.textPrimary, marginBottom: 8, textAlign: 'center' },
+  sub: { fontSize: 15, color: c.textSecondary, textAlign: 'center', marginBottom: 4 },
+  sub2: { fontSize: 13, color: c.textMuted, textAlign: 'center', marginBottom: 30 },
   otpBox: {
-    backgroundColor: colors.card, borderColor: colors.primary, borderWidth: 1.5,
+    backgroundColor: c.card, borderColor: c.primary, borderWidth: 1.5,
     borderRadius: 16, padding: 20, alignItems: 'center', width: '100%', marginBottom: 28,
   },
-  otpLabel: { fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  otp: { fontSize: 48, fontWeight: '900', color: colors.primary, letterSpacing: 8 },
-  otpHint: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginTop: 8 },
-  btn: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12 },
+  otpLabel: { fontSize: 12, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  otp: { fontSize: 48, fontWeight: '900', color: c.primary, letterSpacing: 8 },
+  otpHint: { fontSize: 12, color: c.textSecondary, textAlign: 'center', marginTop: 8 },
+  btn: { backgroundColor: c.primary, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12 },
   btnText: { color: '#000', fontWeight: '700', fontSize: 15 },
-  btnOutline: { borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center' },
-  btnOutlineText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15 },
+  btnOutline: { borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center' },
+  btnOutlineText: { color: c.textSecondary, fontWeight: '600', fontSize: 15 },
 });
+}

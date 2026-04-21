@@ -6,9 +6,11 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetBooking, apiEndSession } from '../api/bookings';
 import { useAuthStore } from '../store/authStore';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 export default function ActiveSessionScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { bookingId } = route.params;
   const { user } = useAuthStore();
 
@@ -188,6 +190,8 @@ export default function ActiveSessionScreen({ route, navigation }) {
 }
 
 function StatRow({ label, value, highlight }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.statRow}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -196,40 +200,41 @@ function StatRow({ label, value, highlight }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 20, paddingBottom: 50 },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
 
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  activeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary, marginRight: 8 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
-  headerSub: { fontSize: 13, color: colors.textSecondary, marginBottom: 20, lineHeight: 18 },
+  activeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.primary, marginRight: 8 },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: c.textPrimary },
+  headerSub: { fontSize: 13, color: c.textSecondary, marginBottom: 20, lineHeight: 18 },
 
   statsCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, overflow: 'hidden', marginBottom: 14,
   },
   statRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 16, paddingVertical: 13,
-    borderBottomWidth: 1, borderBottomColor: colors.cardBorder,
+    borderBottomWidth: 1, borderBottomColor: c.cardBorder,
   },
-  statLabel: { color: colors.textSecondary, fontSize: 14 },
-  statValue: { color: colors.textPrimary, fontWeight: '700', fontSize: 14 },
+  statLabel: { color: c.textSecondary, fontSize: 14 },
+  statValue: { color: c.textPrimary, fontWeight: '700', fontSize: 14 },
 
   otpCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, alignItems: 'center', marginBottom: 12,
   },
-  otpLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
-  otpValue: { fontSize: 36, fontWeight: '900', color: colors.textPrimary, letterSpacing: 8, marginBottom: 4 },
-  otpHint: { fontSize: 12, color: colors.textMuted, textAlign: 'center' },
+  otpLabel: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
+  otpValue: { fontSize: 36, fontWeight: '900', color: c.textPrimary, letterSpacing: 8, marginBottom: 4 },
+  otpHint: { fontSize: 12, color: c.textMuted, textAlign: 'center' },
 
   infoBox: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14,
+    backgroundColor: c.surface, borderRadius: 12, padding: 14,
   },
-  infoText: { color: colors.textSecondary, fontSize: 13, lineHeight: 20 },
+  infoText: { color: c.textSecondary, fontSize: 13, lineHeight: 20 },
 
   endBtn: {
     backgroundColor: '#29B6F6', borderRadius: 14,
@@ -238,14 +243,14 @@ const styles = StyleSheet.create({
   endBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
 
   endForm: {
-    backgroundColor: colors.card, borderColor: '#29B6F6', borderWidth: 1.5,
+    backgroundColor: c.card, borderColor: '#29B6F6', borderWidth: 1.5,
     borderRadius: 16, padding: 20,
   },
-  endFormTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 6, textAlign: 'center' },
-  endFormSub: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginBottom: 16, lineHeight: 20 },
+  endFormTitle: { fontSize: 16, fontWeight: '800', color: c.textPrimary, marginBottom: 6, textAlign: 'center' },
+  endFormSub: { fontSize: 13, color: c.textSecondary, textAlign: 'center', marginBottom: 16, lineHeight: 20 },
   kwhInput: {
-    backgroundColor: colors.surface, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, fontSize: 24, fontWeight: '700',
+    backgroundColor: c.surface, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, color: c.textPrimary, fontSize: 24, fontWeight: '700',
     paddingVertical: 12, paddingHorizontal: 16, marginBottom: 14, textAlign: 'center',
   },
   confirmEndBtn: {
@@ -254,5 +259,6 @@ const styles = StyleSheet.create({
   },
   confirmEndBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
   cancelEndBtn: { paddingVertical: 10, alignItems: 'center' },
-  cancelEndBtnText: { color: colors.textMuted, fontSize: 14 },
+  cancelEndBtnText: { color: c.textMuted, fontSize: 14 },
 });
+}

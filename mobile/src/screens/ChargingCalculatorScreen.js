@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetMe } from '../api/users';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 export default function ChargingCalculatorScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [evMake, setEvMake] = useState('');
   const [evModel, setEvModel] = useState('');
   const [batteryKwh, setBatteryKwh] = useState('');
@@ -231,6 +233,8 @@ export default function ChargingCalculatorScreen({ navigation }) {
 }
 
 function Row({ label, children }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -240,6 +244,8 @@ function Row({ label, children }) {
 }
 
 function ResultRow({ icon, label, value, sub, highlight }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.resultRow}>
       <Text style={styles.resultIcon}>{icon}</Text>
@@ -254,79 +260,81 @@ function ResultRow({ icon, label, value, sub, highlight }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 16, paddingBottom: 50 },
 
   evBanner: {
-    backgroundColor: colors.primaryDim, borderColor: colors.primary + '44', borderWidth: 1,
+    backgroundColor: c.primaryDim, borderColor: c.primary + '44', borderWidth: 1,
     borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center',
     marginBottom: 16, gap: 10,
   },
   evBannerIcon: { fontSize: 24 },
-  evBannerName: { color: colors.primary, fontWeight: '700', fontSize: 15 },
-  evBannerSub: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
-  evBannerChange: { color: colors.primary, fontWeight: '600', fontSize: 13 },
+  evBannerName: { color: c.primary, fontWeight: '700', fontSize: 15 },
+  evBannerSub: { color: c.textSecondary, fontSize: 12, marginTop: 2 },
+  evBannerChange: { color: c.primary, fontWeight: '600', fontSize: 13 },
 
   setupEVBtn: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 12, padding: 14, marginBottom: 16,
   },
-  setupEVText: { color: colors.primary, fontWeight: '600', fontSize: 14, textAlign: 'center' },
+  setupEVText: { color: c.primary, fontWeight: '600', fontSize: 14, textAlign: 'center' },
 
   card: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 14, padding: 16, marginBottom: 14,
   },
   cardTitle: {
-    fontSize: 11, color: colors.textMuted, textTransform: 'uppercase',
+    fontSize: 11, color: c.textMuted, textTransform: 'uppercase',
     letterSpacing: 0.8, marginBottom: 12,
   },
 
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  rowLabel: { color: colors.textSecondary, fontSize: 14, flex: 1 },
+  rowLabel: { color: c.textSecondary, fontSize: 14, flex: 1 },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 
   inputSmall: {
-    backgroundColor: colors.surface, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 10, color: colors.textPrimary, paddingHorizontal: 12,
+    backgroundColor: c.surface, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 10, color: c.textPrimary, paddingHorizontal: 12,
     paddingVertical: 8, fontSize: 16, fontWeight: '700', width: 80, textAlign: 'center',
   },
-  unit: { color: colors.textMuted, fontSize: 13, marginLeft: 4 },
-  rupee: { color: colors.textMuted, fontSize: 16, marginRight: 2 },
+  unit: { color: c.textMuted, fontSize: 13, marginLeft: 4 },
+  rupee: { color: c.textMuted, fontSize: 16, marginRight: 2 },
 
   presetRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   preset: {
-    flex: 1, borderColor: colors.cardBorder, borderWidth: 1,
+    flex: 1, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 10, paddingVertical: 8, alignItems: 'center',
   },
-  presetActive: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  presetText: { color: colors.textSecondary, fontSize: 11, textAlign: 'center', lineHeight: 16 },
-  presetTextActive: { color: colors.primary, fontWeight: '700' },
+  presetActive: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  presetText: { color: c.textSecondary, fontSize: 11, textAlign: 'center', lineHeight: 16 },
+  presetTextActive: { color: c.primary, fontWeight: '700' },
 
   calcBtn: {
-    backgroundColor: colors.primary, borderRadius: 14,
+    backgroundColor: c.primary, borderRadius: 14,
     paddingVertical: 16, alignItems: 'center', marginBottom: 20,
   },
   calcBtnText: { color: '#000', fontWeight: '800', fontSize: 16 },
 
   resultCard: {
-    backgroundColor: colors.card, borderColor: colors.primary + '44',
+    backgroundColor: c.card, borderColor: c.primary + '44',
     borderWidth: 1.5, borderRadius: 16, padding: 18,
   },
   resultTitle: {
-    fontSize: 13, color: colors.textMuted, textTransform: 'uppercase',
+    fontSize: 13, color: c.textMuted, textTransform: 'uppercase',
     letterSpacing: 0.8, marginBottom: 16, textAlign: 'center',
   },
   resultRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: colors.cardBorder, gap: 10,
+    borderBottomWidth: 1, borderBottomColor: c.cardBorder, gap: 10,
   },
   resultIcon: { fontSize: 20, width: 28, textAlign: 'center' },
-  resultLabel: { color: colors.textSecondary, fontSize: 13 },
-  resultSub: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
-  resultValue: { color: colors.textPrimary, fontWeight: '800', fontSize: 16 },
+  resultLabel: { color: c.textSecondary, fontSize: 13 },
+  resultSub: { color: c.textMuted, fontSize: 11, marginTop: 2 },
+  resultValue: { color: c.textPrimary, fontWeight: '800', fontSize: 16 },
 
   disclaimer: { marginTop: 12 },
-  disclaimerText: { color: colors.textMuted, fontSize: 11, textAlign: 'center', lineHeight: 16 },
+  disclaimerText: { color: c.textMuted, fontSize: 11, textAlign: 'center', lineHeight: 16 },
 });
+}

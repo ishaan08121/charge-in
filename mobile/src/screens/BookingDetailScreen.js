@@ -8,15 +8,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { apiGetBooking, apiCancelBooking, apiStartSession } from '../api/bookings';
 import { apiGetUser } from '../api/users';
 import { useAuthStore } from '../store/authStore';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const STATUS_COLOR = {
   pending:   '#FFA726',
-  confirmed: colors.primary,
+  confirmed: '#00c853',
   active:    '#29B6F6',
-  completed: colors.textSecondary,
-  cancelled: colors.danger,
-  declined:  colors.danger,
+  completed: '#999999',
+  cancelled: '#ef5350',
+  declined: '#ef5350',
 };
 
 const STATUS_LABEL = {
@@ -29,6 +29,8 @@ const STATUS_LABEL = {
 };
 
 export default function BookingDetailScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { bookingId } = route.params;
   const { user } = useAuthStore();
 
@@ -234,6 +236,8 @@ export default function BookingDetailScreen({ route, navigation }) {
 }
 
 function Row({ label, value, last }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={[styles.row, !last && styles.rowBorder]}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -242,17 +246,18 @@ function Row({ label, value, last }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 20, paddingBottom: 50 },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
 
   roleBadge: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6,
     alignSelf: 'flex-start', marginBottom: 14,
   },
-  roleBadgeText: { color: colors.textSecondary, fontSize: 13, fontWeight: '600' },
+  roleBadgeText: { color: c.textSecondary, fontSize: 13, fontWeight: '600' },
 
   statusBox: {
     borderWidth: 1, borderRadius: 12,
@@ -261,57 +266,58 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
 
   card: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 14, marginBottom: 20, overflow: 'hidden',
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
-  rowLabel: { color: colors.textMuted, fontSize: 13 },
-  rowValue: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: c.cardBorder },
+  rowLabel: { color: c.textMuted, fontSize: 13 },
+  rowValue: { color: c.textPrimary, fontSize: 13, fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
 
   otpBox: {
-    backgroundColor: colors.card, borderColor: colors.primary, borderWidth: 1.5,
+    backgroundColor: c.card, borderColor: c.primary, borderWidth: 1.5,
     borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 20,
   },
-  otpLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  otp: { fontSize: 52, fontWeight: '900', color: colors.primary, letterSpacing: 10, marginBottom: 8 },
-  otpHint: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 18 },
+  otpLabel: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  otp: { fontSize: 52, fontWeight: '900', color: c.primary, letterSpacing: 10, marginBottom: 8 },
+  otpHint: { fontSize: 12, color: c.textSecondary, textAlign: 'center', lineHeight: 18 },
 
   cancelBtn: {
-    borderColor: colors.danger, borderWidth: 1, borderRadius: 14,
+    borderColor: c.danger, borderWidth: 1, borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
   },
-  cancelBtnText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
+  cancelBtnText: { color: c.danger, fontWeight: '700', fontSize: 15 },
 
   hostBox: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 18,
   },
-  hostBoxText: { color: colors.textSecondary, fontSize: 14, textAlign: 'center', marginBottom: 16 },
+  hostBoxText: { color: c.textSecondary, fontSize: 14, textAlign: 'center', marginBottom: 16 },
 
   startBox: {
-    backgroundColor: colors.card, borderColor: colors.primary + '55', borderWidth: 1.5,
+    backgroundColor: c.card, borderColor: c.primary + '55', borderWidth: 1.5,
     borderRadius: 16, padding: 20,
   },
-  startTitle: { fontSize: 17, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 8 },
-  startSub: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  startTitle: { fontSize: 17, fontWeight: '800', color: c.textPrimary, textAlign: 'center', marginBottom: 8 },
+  startSub: { fontSize: 13, color: c.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
   otpInput: {
-    backgroundColor: colors.surface, borderColor: colors.primary, borderWidth: 1.5,
-    borderRadius: 14, color: colors.primary, fontSize: 36, fontWeight: '900',
+    backgroundColor: c.surface, borderColor: c.primary, borderWidth: 1.5,
+    borderRadius: 14, color: c.primary, fontSize: 36, fontWeight: '900',
     paddingVertical: 14, paddingHorizontal: 20, marginBottom: 16,
     letterSpacing: 14, textAlign: 'center',
   },
 
   primaryBtn: {
-    backgroundColor: colors.primary, borderRadius: 14,
+    backgroundColor: c.primary, borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
   },
   primaryBtnDisabled: { opacity: 0.4 },
   primaryBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
 
   infoBox: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 12, padding: 16,
   },
-  infoText: { color: colors.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  infoText: { color: c.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
 });
+}

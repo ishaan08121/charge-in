@@ -4,9 +4,11 @@ import {
   StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView,
 } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 export default function SignupScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -63,20 +65,22 @@ export default function SignupScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c) {
+  return StyleSheet.create({
   container: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28, paddingVertical: 40 },
-  logo: { fontSize: 32, fontWeight: '800', color: colors.primary, textAlign: 'center', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginBottom: 40 },
+  logo: { fontSize: 32, fontWeight: '800', color: c.primary, textAlign: 'center', marginBottom: 6 },
+  subtitle: { fontSize: 14, color: c.textSecondary, textAlign: 'center', marginBottom: 40 },
   input: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, paddingHorizontal: 16,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, color: c.textPrimary, paddingHorizontal: 16,
     paddingVertical: 14, marginBottom: 14, fontSize: 15,
   },
   btn: {
-    backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 15,
+    backgroundColor: c.primary, borderRadius: 12, paddingVertical: 15,
     alignItems: 'center', marginTop: 6, marginBottom: 20,
   },
   btnText: { color: '#000', fontWeight: '700', fontSize: 16 },
-  link: { textAlign: 'center', color: colors.textSecondary, fontSize: 14 },
-  linkGreen: { color: colors.primary, fontWeight: '600' },
+  link: { textAlign: 'center', color: c.textSecondary, fontSize: 14 },
+  linkGreen: { color: c.primary, fontWeight: '600' },
 });
+}

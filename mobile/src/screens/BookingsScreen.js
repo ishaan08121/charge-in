@@ -6,15 +6,15 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetBookings } from '../api/bookings';
 import { useAuthStore } from '../store/authStore';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const STATUS_COLOR = {
   pending:   '#FFA726',
-  confirmed: colors.primary,
+  confirmed: '#00c853',
   active:    '#29B6F6',
-  completed: colors.textSecondary,
-  cancelled: colors.danger,
-  declined:  colors.danger,
+  completed: '#999999',
+  cancelled: '#ef5350',
+  declined: '#ef5350',
 };
 
 const STATUS_LABEL = {
@@ -30,6 +30,8 @@ const ACTIVE_STATUSES = ['pending', 'confirmed', 'active'];
 const HISTORY_STATUSES = ['completed', 'cancelled', 'declined'];
 
 export default function BookingsScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { user } = useAuthStore();
   const [tab, setTab] = useState('active'); // 'active' | 'history'
   const [bookings, setBookings] = useState([]);
@@ -187,44 +189,46 @@ export default function BookingsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  heading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, padding: 20, paddingBottom: 12 },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  heading: { fontSize: 22, fontWeight: '800', color: c.textPrimary, padding: 20, paddingBottom: 12 },
 
   tabs: {
     flexDirection: 'row', marginHorizontal: 16, marginBottom: 12,
-    backgroundColor: colors.card, borderRadius: 12,
-    borderWidth: 1, borderColor: colors.cardBorder, padding: 4,
+    backgroundColor: c.card, borderRadius: 12,
+    borderWidth: 1, borderColor: c.cardBorder, padding: 4,
   },
   tab: { flex: 1, paddingVertical: 9, borderRadius: 9, alignItems: 'center' },
-  tabActive: { backgroundColor: colors.primary },
-  tabText: { color: colors.textMuted, fontWeight: '600', fontSize: 14 },
+  tabActive: { backgroundColor: c.primary },
+  tabText: { color: c.textMuted, fontWeight: '600', fontSize: 14 },
   tabTextActive: { color: '#000', fontWeight: '800' },
   tabCount: { fontWeight: '900' },
 
   card: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, marginBottom: 10,
   },
   cardActive: { borderColor: '#29B6F6', backgroundColor: '#0a1a2a' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
-  chargerTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, flex: 1, marginRight: 8 },
+  chargerTitle: { fontSize: 15, fontWeight: '700', color: c.textPrimary, flex: 1, marginRight: 8 },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  statusLabel: { fontSize: 13, color: colors.textSecondary, marginBottom: 4, fontWeight: '500' },
-  location: { fontSize: 12, color: colors.textMuted, marginBottom: 2 },
-  time: { fontSize: 12, color: colors.textMuted },
+  statusLabel: { fontSize: 13, color: c.textSecondary, marginBottom: 4, fontWeight: '500' },
+  location: { fontSize: 12, color: c.textMuted, marginBottom: 2 },
+  time: { fontSize: 12, color: c.textMuted },
   activeChip: {
     marginTop: 10, backgroundColor: '#29B6F622', borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 6,
   },
   activeChipText: { color: '#29B6F6', fontSize: 12, fontWeight: '600' },
-  amountText: { fontSize: 12, color: colors.primary, marginTop: 6, fontWeight: '600' },
-  bookerText: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
-  cancelReason: { fontSize: 12, color: colors.danger, marginTop: 4 },
+  amountText: { fontSize: 12, color: c.primary, marginTop: 6, fontWeight: '600' },
+  bookerText: { fontSize: 12, color: c.textSecondary, marginTop: 4 },
+  cancelReason: { fontSize: 12, color: c.danger, marginTop: 4 },
 
   emptyBox: { alignItems: 'center', paddingTop: 48 },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
-  empty: { color: colors.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  emptySub: { color: colors.textMuted, fontSize: 13, textAlign: 'center', paddingHorizontal: 20 },
+  empty: { color: c.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  emptySub: { color: c.textMuted, fontSize: 13, textAlign: 'center', paddingHorizontal: 20 },
 });
+}

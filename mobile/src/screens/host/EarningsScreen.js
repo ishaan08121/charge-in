@@ -3,9 +3,11 @@ import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import client from '../../api/client';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 export default function EarningsScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [earnings, setEarnings] = useState(null);
   const [payouts, setPayouts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,28 +104,30 @@ function StatCard({ label, value, highlight, warn }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
-  heading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 20 },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
+  heading: { fontSize: 22, fontWeight: '800', color: c.textPrimary, marginBottom: 20 },
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  statCard: { flex: 1, backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14, padding: 14 },
-  statCardHighlight: { borderColor: colors.primary, backgroundColor: colors.primaryDim },
-  statLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
-  statValue: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  statCard: { flex: 1, backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14, padding: 14 },
+  statCardHighlight: { borderColor: c.primary, backgroundColor: c.primaryDim },
+  statLabel: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
+  statValue: { fontSize: 18, fontWeight: '800', color: c.textPrimary },
   pendingNote: { backgroundColor: '#FFA72622', borderColor: '#FFA726', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 20 },
   pendingNoteText: { color: '#FFA726', fontSize: 13, lineHeight: 18 },
-  sectionLabel: { fontSize: 13, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
-  txCard: { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionLabel: { fontSize: 13, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  txCard: { backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   txLeft: {},
-  txDate: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 3 },
-  txSub: { fontSize: 12, color: colors.textMuted },
+  txDate: { fontSize: 14, fontWeight: '600', color: c.textPrimary, marginBottom: 3 },
+  txSub: { fontSize: 12, color: c.textMuted },
   txRight: { alignItems: 'flex-end', gap: 6 },
-  txAmount: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  txAmount: { fontSize: 16, fontWeight: '700', color: c.textPrimary },
   txBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
   txBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
   emptyBox: { alignItems: 'center', paddingTop: 32 },
   emptyIcon: { fontSize: 36, marginBottom: 10 },
-  empty: { color: colors.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  emptySub: { color: colors.textMuted, fontSize: 13 },
+  empty: { color: c.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  emptySub: { color: c.textMuted, fontSize: 13 },
 });
+}

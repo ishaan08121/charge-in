@@ -7,7 +7,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { apiInitiateBooking, apiConfirmBooking } from '../api/bookings';
 import client from '../api/client';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 const DURATIONS = [1, 2, 3, 4, 6, 8];
 const MINUTES = [0, 15, 30, 45];
@@ -30,6 +30,8 @@ function formatTime(h, m) {
 }
 
 export default function BookSlotScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { charger, chargerLat, chargerLng } = route.params;
 
   // Commercial chargers allow 24h; home/society restricted to 6AM-10PM
@@ -424,18 +426,19 @@ function EstRow({ label, value, highlight }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 20, paddingBottom: 50 },
 
-  name: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 6 },
+  name: { fontSize: 20, fontWeight: '800', color: c.textPrimary, marginBottom: 6 },
   locRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  locText: { fontSize: 13, color: colors.textSecondary, flex: 1, marginRight: 8 },
+  locText: { fontSize: 13, color: c.textSecondary, flex: 1, marginRight: 8 },
   dirBtn: {
-    backgroundColor: '#0d1f2d', borderColor: colors.blue, borderWidth: 1,
+    backgroundColor: '#0d1f2d', borderColor: c.blue, borderWidth: 1,
     borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5,
   },
-  dirBtnText: { color: colors.blue, fontSize: 12, fontWeight: '700' },
+  dirBtnText: { color: c.blue, fontSize: 12, fontWeight: '700' },
 
   noticeBox: {
     backgroundColor: '#1a1a0d', borderColor: '#FFA72644', borderWidth: 1,
@@ -443,63 +446,63 @@ const styles = StyleSheet.create({
   },
   noticeText: { color: '#FFA726', fontSize: 12, fontWeight: '500' },
 
-  label: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
+  label: { fontSize: 11, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
 
   dateRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
   dateTab: {
-    flex: 1, backgroundColor: colors.card, borderColor: colors.cardBorder,
+    flex: 1, backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center',
   },
-  dateTabSel: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  dateTabTop: { fontSize: 13, fontWeight: '700', color: colors.textSecondary, marginBottom: 2 },
-  dateTabTopSel: { color: colors.primary },
-  dateTabBot: { fontSize: 12, color: colors.textMuted },
-  dateTabBotSel: { color: colors.primary + '99' },
+  dateTabSel: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  dateTabTop: { fontSize: 13, fontWeight: '700', color: c.textSecondary, marginBottom: 2 },
+  dateTabTopSel: { color: c.primary },
+  dateTabBot: { fontSize: 12, color: c.textMuted },
+  dateTabBotSel: { color: c.primary + '99' },
 
   slotHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   slotsScroll: { marginHorizontal: -20, marginBottom: 12 },
   slotsContent: { paddingHorizontal: 20, gap: 8, paddingBottom: 4 },
   slot: {
-    backgroundColor: colors.card, borderColor: colors.primary, borderWidth: 1.5,
+    backgroundColor: c.card, borderColor: c.primary, borderWidth: 1.5,
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8,
     alignItems: 'center', minWidth: 64,
   },
-  slotSel: { backgroundColor: colors.primaryDim },
-  slotBooked: { backgroundColor: '#1a0d0d', borderColor: colors.danger },
-  slotPast: { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: 0.4 },
-  slotCustom: { borderColor: colors.blue, borderStyle: 'dashed', minWidth: 72 },
-  slotHour: { color: colors.primary, fontSize: 13, fontWeight: '700' },
-  slotHourSel: { color: colors.primary },
-  slotHourOff: { color: colors.textMuted },
-  slotTag: { fontSize: 9, color: colors.danger, marginTop: 2, fontWeight: '600' },
+  slotSel: { backgroundColor: c.primaryDim },
+  slotBooked: { backgroundColor: '#1a0d0d', borderColor: c.danger },
+  slotPast: { backgroundColor: c.card, borderColor: c.cardBorder, opacity: 0.4 },
+  slotCustom: { borderColor: c.blue, borderStyle: 'dashed', minWidth: 72 },
+  slotHour: { color: c.primary, fontSize: 13, fontWeight: '700' },
+  slotHourSel: { color: c.primary },
+  slotHourOff: { color: c.textMuted },
+  slotTag: { fontSize: 9, color: c.danger, marginTop: 2, fontWeight: '600' },
 
   legend: { flexDirection: 'row', gap: 14, marginBottom: 22 },
 
   durRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   durChip: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10,
   },
-  durChipSel: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  durText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15 },
-  durTextSel: { color: colors.primary },
+  durChipSel: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  durText: { color: c.textSecondary, fontWeight: '600', fontSize: 15 },
+  durTextSel: { color: c.primary },
 
   summaryCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, marginBottom: 16,
   },
-  hdivider: { height: 1, backgroundColor: colors.cardBorder },
-  conflict: { color: colors.star, fontSize: 12, paddingVertical: 8, lineHeight: 18 },
+  hdivider: { height: 1, backgroundColor: c.cardBorder },
+  conflict: { color: c.star, fontSize: 12, paddingVertical: 8, lineHeight: 18 },
 
   estimateCard: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder,
+    backgroundColor: c.card, borderColor: c.cardBorder,
     borderWidth: 1, borderRadius: 14, paddingHorizontal: 16,
     paddingTop: 4, paddingBottom: 4, marginBottom: 14,
   },
 
-  note: { fontSize: 12, color: colors.textMuted, marginBottom: 24, lineHeight: 18 },
-  btn: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  btnOff: { backgroundColor: colors.primaryDim, opacity: 0.6 },
+  note: { fontSize: 12, color: c.textMuted, marginBottom: 24, lineHeight: 18 },
+  btn: { backgroundColor: c.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  btnOff: { backgroundColor: c.primaryDim, opacity: 0.6 },
   btnText: { color: '#000', fontWeight: '800', fontSize: 16 },
 
   // iOS time picker modal
@@ -508,16 +511,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   pickerCard: {
-    backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    backgroundColor: c.card, borderTopLeftRadius: 20, borderTopRightRadius: 20,
     paddingBottom: 30,
   },
   pickerTitle: {
-    color: colors.textPrimary, fontWeight: '700', fontSize: 16,
+    color: c.textPrimary, fontWeight: '700', fontSize: 16,
     textAlign: 'center', paddingTop: 20, paddingBottom: 8,
   },
   pickerDone: {
-    backgroundColor: colors.primary, borderRadius: 12,
+    backgroundColor: c.primary, borderRadius: 12,
     marginHorizontal: 20, paddingVertical: 14, alignItems: 'center', marginTop: 8,
   },
   pickerDoneText: { color: '#000', fontWeight: '800', fontSize: 15 },
 });
+}

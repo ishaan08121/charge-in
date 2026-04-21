@@ -10,7 +10,7 @@ import MapView, { Marker } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import client from '../../api/client';
 import { API_BASE_URL } from '../../constants/config';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 const CHARGER_TYPES = [
   { label: 'AC 3.3kW (Home charger)', power: 3.3, type: 'AC' },
@@ -35,6 +35,8 @@ async function toJpeg(uri) {
 }
 
 export default function ListChargerScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -423,42 +425,43 @@ export default function ListChargerScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   stepBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, paddingBottom: 4 },
-  stepDot: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  stepDotActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  stepNum: { color: colors.textMuted, fontSize: 13, fontWeight: '700' },
+  stepDot: { width: 28, height: 28, borderRadius: 14, backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  stepDotActive: { backgroundColor: c.primary, borderColor: c.primary },
+  stepNum: { color: c.textMuted, fontSize: 13, fontWeight: '700' },
   stepNumActive: { color: '#000' },
-  stepLine: { flex: 1, height: 2, backgroundColor: colors.cardBorder, marginHorizontal: 4 },
-  stepLineActive: { backgroundColor: colors.primary },
+  stepLine: { flex: 1, height: 2, backgroundColor: c.cardBorder, marginHorizontal: 4 },
+  stepLineActive: { backgroundColor: c.primary },
   content: { padding: 20, paddingTop: 8, paddingBottom: 40 },
-  stepTitle: { fontSize: 13, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 },
-  label: { fontSize: 13, color: colors.textSecondary, marginBottom: 8, marginTop: 14, fontWeight: '500' },
+  stepTitle: { fontSize: 13, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 },
+  label: { fontSize: 13, color: c.textSecondary, marginBottom: 8, marginTop: 14, fontWeight: '500' },
   input: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
-    borderRadius: 12, color: colors.textPrimary, paddingHorizontal: 16,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
+    borderRadius: 12, color: c.textPrimary, paddingHorizontal: 16,
     paddingVertical: 13, fontSize: 15,
   },
   optionRow: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between',
   },
-  optionRowActive: { borderColor: colors.primary, backgroundColor: colors.primaryDim },
-  optionText: { color: colors.textSecondary, fontSize: 14 },
-  optionTextActive: { color: colors.primary, fontWeight: '600' },
+  optionRowActive: { borderColor: c.primary, backgroundColor: c.primaryDim },
+  optionText: { color: c.textSecondary, fontSize: 14 },
+  optionTextActive: { color: c.primary, fontWeight: '600' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
-  chip: { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
-  chipActive: { backgroundColor: colors.primaryDim, borderColor: colors.primary },
-  chipText: { color: colors.textSecondary, fontSize: 13 },
-  chipTextActive: { color: colors.primary, fontWeight: '600' },
+  chip: { backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
+  chipActive: { backgroundColor: c.primaryDim, borderColor: c.primary },
+  chipText: { color: c.textSecondary, fontSize: 13 },
+  chipTextActive: { color: c.primary, fontWeight: '600' },
 
   // Photos
   photoSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, marginBottom: 4 },
   photoCount: { fontSize: 13, fontWeight: '700' },
-  photoCountOk: { color: colors.primary },
+  photoCountOk: { color: c.primary },
   photoCountWarn: { color: '#FFA726' },
-  photoHint: { fontSize: 12, color: colors.textMuted, marginBottom: 12, lineHeight: 18 },
+  photoHint: { fontSize: 12, color: c.textMuted, marginBottom: 12, lineHeight: 18 },
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   photoThumb: { width: 100, height: 80, borderRadius: 10, overflow: 'hidden', position: 'relative' },
   photoImg: { width: '100%', height: '100%' },
@@ -470,33 +473,34 @@ const styles = StyleSheet.create({
   photoRemoveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   photoAdd: {
     width: 100, height: 80, borderRadius: 10,
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   photoAddIcon: { fontSize: 22 },
-  photoAddText: { color: colors.textMuted, fontSize: 11 },
+  photoAddText: { color: c.textMuted, fontSize: 11 },
 
   // Step 2
-  locBtn: { backgroundColor: colors.card, borderColor: colors.primary, borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 14 },
-  locBtnText: { color: colors.primary, fontWeight: '600', fontSize: 15 },
+  locBtn: { backgroundColor: c.card, borderColor: c.primary, borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 14 },
+  locBtnText: { color: c.primary, fontWeight: '600', fontSize: 15 },
   miniMap: { height: 180, borderRadius: 14, marginBottom: 8, overflow: 'hidden' },
-  hintText: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginBottom: 16 },
+  hintText: { color: c.textMuted, fontSize: 12, textAlign: 'center', marginBottom: 16 },
 
   // Step 3
-  summaryCard: { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14, overflow: 'hidden', marginBottom: 20 },
+  summaryCard: { backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14, overflow: 'hidden', marginBottom: 20 },
   summaryPhoto: { width: '100%', height: 120 },
-  summaryTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
-  summarySub: { fontSize: 13, color: colors.textSecondary, marginBottom: 2 },
-  priceInput: { fontSize: 28, fontWeight: '700', color: colors.primary, textAlign: 'center', paddingVertical: 18 },
-  earningsCard: { backgroundColor: colors.primaryDim, borderColor: colors.primary, borderWidth: 1, borderRadius: 12, padding: 16, marginTop: 14 },
-  earningsLabel: { fontSize: 12, color: colors.primary, marginBottom: 4 },
-  earningsValue: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  earningsSub: { fontSize: 12, fontWeight: '400', color: colors.textSecondary },
-  pricingHint: { fontSize: 12, color: colors.textMuted, marginTop: 14, lineHeight: 18 },
+  summaryTitle: { fontSize: 17, fontWeight: '700', color: c.textPrimary, marginBottom: 4 },
+  summarySub: { fontSize: 13, color: c.textSecondary, marginBottom: 2 },
+  priceInput: { fontSize: 28, fontWeight: '700', color: c.primary, textAlign: 'center', paddingVertical: 18 },
+  earningsCard: { backgroundColor: c.primaryDim, borderColor: c.primary, borderWidth: 1, borderRadius: 12, padding: 16, marginTop: 14 },
+  earningsLabel: { fontSize: 12, color: c.primary, marginBottom: 4 },
+  earningsValue: { fontSize: 22, fontWeight: '800', color: c.primary },
+  earningsSub: { fontSize: 12, fontWeight: '400', color: c.textSecondary },
+  pricingHint: { fontSize: 12, color: c.textMuted, marginTop: 14, lineHeight: 18 },
 
-  footer: { flexDirection: 'row', gap: 10, padding: 16, borderTopWidth: 1, borderTopColor: colors.cardBorder },
-  backBtn: { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, paddingHorizontal: 18, alignItems: 'center' },
-  backBtnText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15 },
-  nextBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
+  footer: { flexDirection: 'row', gap: 10, padding: 16, borderTopWidth: 1, borderTopColor: c.cardBorder },
+  backBtn: { backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14, paddingVertical: 15, paddingHorizontal: 18, alignItems: 'center' },
+  backBtnText: { color: c.textSecondary, fontWeight: '600', fontSize: 15 },
+  nextBtn: { flex: 1, backgroundColor: c.primary, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
   nextBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
 });
+}

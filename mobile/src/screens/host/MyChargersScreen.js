@@ -6,9 +6,11 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { apiGetMyChargers, apiUpdateCharger, apiDeleteCharger } from '../../api/chargers';
 import { useChargerStore } from '../../store/chargerStore';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 export default function MyChargersScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [chargers, setChargers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState(null);
@@ -155,20 +157,21 @@ export default function MyChargersScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center' },
 
   card: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 16, marginBottom: 14, overflow: 'hidden',
   },
   thumb: { width: '100%', height: 140 },
-  thumbPlaceholder: { backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  thumbPlaceholder: { backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' },
 
   cardBody: { padding: 14 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, flex: 1, marginRight: 8 },
+  title: { fontSize: 16, fontWeight: '800', color: c.textPrimary, flex: 1, marginRight: 8 },
 
   badge: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -179,24 +182,25 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 12, fontWeight: '600' },
 
   detailRow: { flexDirection: 'row', gap: 12, marginBottom: 4 },
-  detail: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
-  location: { fontSize: 12, color: colors.textMuted, marginBottom: 12 },
+  detail: { fontSize: 13, color: c.textSecondary, fontWeight: '500' },
+  location: { fontSize: 12, color: c.textMuted, marginBottom: 12 },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   editBtn: {
-    flex: 1, backgroundColor: colors.primaryDim, borderColor: colors.primary,
+    flex: 1, backgroundColor: c.primaryDim, borderColor: c.primary,
     borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center',
   },
-  editBtnText: { color: colors.primary, fontWeight: '700', fontSize: 14 },
+  editBtnText: { color: c.primary, fontWeight: '700', fontSize: 14 },
   deleteBtn: {
-    backgroundColor: '#2a1a1a', borderColor: colors.danger + '66',
+    backgroundColor: '#2a1a1a', borderColor: c.danger + '66',
     borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 18, alignItems: 'center',
   },
-  deleteBtnText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
+  deleteBtnText: { color: c.danger, fontWeight: '700', fontSize: 14 },
 
   emptyBox: { alignItems: 'center', paddingTop: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { color: colors.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 20 },
-  addBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 28 },
+  emptyText: { color: c.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 20 },
+  addBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 28 },
   addBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
 });
+}

@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 
 export default function SessionCompleteScreen({ route, navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { booking } = route.params;
   const { user } = useAuthStore();
   const session = booking.session || {};
@@ -158,6 +160,8 @@ export default function SessionCompleteScreen({ route, navigation }) {
 }
 
 function ReceiptRow({ label, value, highlight }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.receiptRow}>
       <Text style={styles.receiptLabel}>{label}</Text>
@@ -166,49 +170,51 @@ function ReceiptRow({ label, value, highlight }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
   content: { padding: 24, alignItems: 'center', paddingTop: 40 },
 
   successCircle: {
     width: 72, height: 72, borderRadius: 36,
-    backgroundColor: colors.primaryDim, borderColor: colors.primary, borderWidth: 2,
+    backgroundColor: c.primaryDim, borderColor: c.primary, borderWidth: 2,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  successIcon: { fontSize: 32, color: colors.primary, fontWeight: '800' },
-  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
-  sub: { fontSize: 14, color: colors.textSecondary, marginBottom: 24, textAlign: 'center' },
+  successIcon: { fontSize: 32, color: c.primary, fontWeight: '800' },
+  title: { fontSize: 24, fontWeight: '800', color: c.textPrimary, marginBottom: 4 },
+  sub: { fontSize: 14, color: c.textSecondary, marginBottom: 24, textAlign: 'center' },
 
   receipt: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 16, padding: 18, width: '100%', marginBottom: 20,
   },
-  receiptTitle: { fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  receiptTitle: { fontSize: 12, color: c.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  receiptLabel: { color: colors.textSecondary, fontSize: 14 },
-  receiptValue: { color: colors.textPrimary, fontWeight: '700', fontSize: 14 },
-  receiptDivider: { height: 1, backgroundColor: colors.cardBorder, marginVertical: 6 },
+  receiptLabel: { color: c.textSecondary, fontSize: 14 },
+  receiptValue: { color: c.textPrimary, fontWeight: '700', fontSize: 14 },
+  receiptDivider: { height: 1, backgroundColor: c.cardBorder, marginVertical: 6 },
 
   reviewBox: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 16, padding: 18, width: '100%', marginBottom: 16, alignItems: 'center',
   },
-  reviewTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
-  reviewSub: { fontSize: 12, color: colors.textMuted, marginBottom: 14, textAlign: 'center' },
+  reviewTitle: { fontSize: 15, fontWeight: '700', color: c.textPrimary, marginBottom: 4 },
+  reviewSub: { fontSize: 12, color: c.textMuted, marginBottom: 14, textAlign: 'center' },
   starRow: { flexDirection: 'row', marginBottom: 18 },
   star: { fontSize: 42, marginHorizontal: 6 },
-  reviewBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32, alignItems: 'center' },
+  reviewBtn: { backgroundColor: c.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32, alignItems: 'center' },
   reviewBtnText: { color: '#000', fontWeight: '700', fontSize: 14 },
 
   reviewedBox: {
-    backgroundColor: colors.primaryDim, borderRadius: 12,
+    backgroundColor: c.primaryDim, borderRadius: 12,
     padding: 14, marginBottom: 16, width: '100%',
   },
-  reviewedText: { color: colors.primary, textAlign: 'center', fontWeight: '600', fontSize: 15 },
+  reviewedText: { color: c.primary, textAlign: 'center', fontWeight: '600', fontSize: 15 },
 
   doneBtn: {
-    borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 14,
+    borderColor: c.cardBorder, borderWidth: 1, borderRadius: 14,
     paddingVertical: 14, width: '100%', alignItems: 'center', marginTop: 4,
   },
-  doneBtnText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15 },
+  doneBtnText: { color: c.textSecondary, fontWeight: '600', fontSize: 15 },
 });
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { colors } from '../constants/colors';
+import { useColors } from '../constants/colors';
 import { useChargerStore } from '../store/chargerStore';
 
 const CONNECTORS = [
@@ -21,6 +21,8 @@ const RATINGS = [
 ];
 
 export default function FilterBar({ onFilterChange }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { connectorFilter, radiusKm, minRating, setFilter } = useChargerStore();
 
   function apply(key, value) {
@@ -75,19 +77,21 @@ function Chip({ label, active, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c) {
+  return StyleSheet.create({
   bar: { flexGrow: 0, flexShrink: 0 },
   content: { paddingHorizontal: 16, paddingVertical: 8, flexDirection: 'row', alignItems: 'center' },
   chip: {
-    backgroundColor: colors.filterBg,
-    borderColor: colors.cardBorder,
+    backgroundColor: c.filterBg,
+    borderColor: c.cardBorder,
     borderWidth: 1,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
     marginRight: 8,
   },
-  chipActive: { backgroundColor: colors.filterActiveBg, borderColor: colors.primary },
-  chipText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
-  chipTextActive: { color: colors.primary },
+  chipActive: { backgroundColor: c.filterActiveBg, borderColor: c.primary },
+  chipText: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
+  chipTextActive: { color: c.primary },
 });
+}

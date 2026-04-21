@@ -5,18 +5,20 @@ import {
 } from 'react-native';
 import { apiGetBookings, apiRespondBooking, apiStartSession, apiEndSession } from '../../api/bookings';
 import { apiGetUser, apiGetUserRating } from '../../api/users';
-import { colors } from '../../constants/colors';
+import { useColors } from '../../constants/colors';
 
 const STATUS_COLOR = {
   pending: '#FFA726',
-  confirmed: colors.primary,
+  confirmed: '#00c853',
   active: '#29B6F6',
-  completed: colors.textSecondary,
-  cancelled: colors.danger,
-  declined: colors.danger,
+  completed: '#999999',
+  cancelled: '#ef5350',
+  declined: '#ef5350',
 };
 
 export default function BookingRequestsScreen({ navigation }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -215,37 +217,39 @@ export default function BookingRequestsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  heading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, padding: 20, paddingBottom: 12 },
+function makeStyles(c) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  heading: { fontSize: 22, fontWeight: '800', color: c.textPrimary, padding: 20, paddingBottom: 12 },
   card: {
-    backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1,
+    backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, marginBottom: 12,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  chargerTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
-  time: { fontSize: 12, color: colors.textSecondary },
+  chargerTitle: { fontSize: 15, fontWeight: '700', color: c.textPrimary, marginBottom: 4 },
+  time: { fontSize: 12, color: c.textSecondary },
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, padding: 10, backgroundColor: colors.bg, borderRadius: 10, flexWrap: 'nowrap' },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, padding: 10, backgroundColor: c.bg, borderRadius: 10, flexWrap: 'nowrap' },
   ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFA72622', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   ratingText: { color: '#FFA726', fontWeight: '700', fontSize: 13 },
-  ratingCount: { color: colors.textMuted, fontSize: 11 },
+  ratingCount: { color: c.textMuted, fontSize: 11 },
   userIcon: { fontSize: 20 },
-  userName: { color: colors.textPrimary, fontWeight: '600', fontSize: 14 },
-  userPhone: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  amountRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.cardBorder, marginBottom: 12 },
-  amountLabel: { color: colors.textMuted, fontSize: 13 },
-  amountValue: { color: colors.textPrimary, fontWeight: '700', fontSize: 13 },
+  userName: { color: c.textPrimary, fontWeight: '600', fontSize: 14 },
+  userPhone: { color: c.textMuted, fontSize: 12, marginTop: 2 },
+  amountRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: c.cardBorder, marginBottom: 12 },
+  amountLabel: { color: c.textMuted, fontSize: 13 },
+  amountValue: { color: c.textPrimary, fontWeight: '700', fontSize: 13 },
   actionRow: { flexDirection: 'row' },
-  declineBtn: { flex: 1, borderColor: colors.danger, borderWidth: 1, borderRadius: 10, paddingVertical: 11, alignItems: 'center', marginRight: 10 },
-  declineBtnText: { color: colors.danger, fontWeight: '600', fontSize: 14 },
-  acceptBtn: { flex: 2, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
+  declineBtn: { flex: 1, borderColor: c.danger, borderWidth: 1, borderRadius: 10, paddingVertical: 11, alignItems: 'center', marginRight: 10 },
+  declineBtnText: { color: c.danger, fontWeight: '600', fontSize: 14 },
+  acceptBtn: { flex: 2, backgroundColor: c.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
   acceptBtnText: { color: '#000', fontWeight: '700', fontSize: 14 },
-  primaryBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
+  primaryBtn: { backgroundColor: c.primary, borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
   primaryBtnText: { color: '#000', fontWeight: '700', fontSize: 14 },
   emptyBox: { alignItems: 'center', paddingTop: 48 },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
-  empty: { color: colors.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  emptySub: { color: colors.textMuted, fontSize: 13 },
+  empty: { color: c.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  emptySub: { color: c.textMuted, fontSize: 13 },
 });
+}
