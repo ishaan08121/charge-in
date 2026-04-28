@@ -111,9 +111,15 @@ export default function MapScreen({ navigation }) {
     Keyboard.dismiss();
     setSearching(true);
     try {
-      const results = await Location.geocodeAsync(searchText.trim());
-      if (!results?.length) { setLocationError('Location not found.'); return; }
-      const { latitude, longitude } = results[0];
+      const query = encodeURIComponent(searchText.trim());
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+        { headers: { 'User-Agent': 'charge-in-app' } }
+      );
+      const data = await response.json();
+      if (!data?.length) { setLocationError('Location not found.'); return; }
+      const latitude = parseFloat(data[0].lat);
+      const longitude = parseFloat(data[0].lon);
       const coords = { latitude, longitude };
       setUserLocation(coords);
       fetchNearby(latitude, longitude);
