@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Alert, ActivityIndicator, RefreshControl,
+  Alert, ActivityIndicator, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { apiGetBookings, apiRespondBooking, apiStartSession, apiEndSession } from '../../api/bookings';
 import { apiGetUser, apiGetUserRating } from '../../api/users';
@@ -21,6 +21,10 @@ export default function BookingRequestsScreen({ navigation }) {
   const styles = makeStyles(colors);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [otpModal, setOtpModal] = useState({ visible: false, bookingId: null });
+  const [kwhModal, setKwhModal] = useState({ visible: false, bookingId: null });
+  const [inputText, setInputText] = useState('');
+  const pendingBookingId = React.useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,42 +90,49 @@ export default function BookingRequestsScreen({ navigation }) {
     );
   }
 
-  async function handleStartSession(bookingId) {
-    Alert.prompt(
-      'Enter User OTP',
-      'Ask the user for their 4-digit OTP to start the session',
-      async (otp) => {
-        try {
-          await apiStartSession(bookingId, otp);
-          Alert.alert('Session Started', 'Charging session has begun!');
-          load();
-        } catch (err) {
-          Alert.alert('Error', err.response?.data?.error || 'Invalid OTP');
-        }
-      },
-      'plain-text',
-      '',
-      'number-pad'
-    );
+  function handleStartSession(bookingId) {
+    pendingBookingId.current = bookingId;
+    setInputText('');
+    setOtpModal({ visible: true, bookingId });
   }
 
-  async function handleEndSession(bookingId) {
-    Alert.prompt(
-      'Units Delivered (kWh)',
-      'Enter the kWh delivered from your charger meter',
-      async (kwh) => {
-        try {
-          const { data } = await apiEndSession(bookingId, parseFloat(kwh));
-          Alert.alert('Session Ended', `Final amount: ₹${data.final_amount_inr}`);
-          load();
-        } catch (err) {
-          Alert.alert('Error', err.response?.data?.error || 'Failed to end session');
-        }
-      },
-      'plain-text',
-      '',
-      'decimal-pad'
-    );
+  async function submitOtp() {
+    if (!inputText || inputText.length !== 4) {
+      Alert.alert('Invalid OTP', 'Please enter the 4-digit OTP from the user');
+      return;
+    }
+    const bookingId = pendingBookingId.current;
+    setOtpModal({ visible: false, bookingId: null });
+    try {
+      await apiStartSession(bookingId, inputText);
+      Alert.alert('Session Started', 'Charging session has begun!');
+      load();
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.error || 'Invalid OTP');
+    }
+  }
+
+  function handleEndSession(bookingId) {
+    pendingBookingId.current = bookingId;
+    setInputText('');
+    setKwhModal({ visible: true, bookingId });
+  }
+
+  async function submitKwh() {
+    const kwh = parseFloat(inputText);
+    if (isNaN(kwh) || kwh < 0) {
+      Alert.alert('Invalid Value', 'Please enter a valid kWh amount');
+      return;
+    }
+    const bookingId = pendingBookingId.current;
+    setKwhModal({ visible: false, bookingId: null });
+    try {
+      const { data } = await apiEndSession(bookingId, kwh);
+      Alert.alert('Session Ended', `Final amount: ₹${data.final_amount_inr}`);
+      load();
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.error || 'Failed to end session');
+    }
   }
 
   function renderItem({ item }) {
@@ -195,8 +206,63 @@ export default function BookingRequestsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Booking Requests</Text>
-      {loading && !bookings.length && <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />}
+      {loading && !bookings.length && <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />}
+
+      {/* OTP Modal */}
+      <Modal visible={otpModal.visible} transparent animationType="fade">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Enter User OTP</Text>
+            <Text style={styles.modalSub}>Ask the user for their 4-digit OTP</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={inputText}
+              onChangeText={setInputText}
+              keyboardType="number-pad"
+              maxLength={4}
+              placeholder="1234"
+              placeholderTextColor={colors.textMuted}
+              autoFocus
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setOtpModal({ visible: false, bookingId: null })}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalConfirmBtn} onPress={submitOtp}>
+                <Text style={styles.modalConfirmText}>Start Session</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* kWh Modal */}
+      <Modal visible={kwhModal.visible} transparent animationType="fade">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Units Delivered (kWh)</Text>
+            <Text style={styles.modalSub}>Enter the kWh reading from your charger meter</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={inputText}
+              onChangeText={setInputText}
+              keyboardType="decimal-pad"
+              placeholder="e.g. 7.5"
+              placeholderTextColor={colors.textMuted}
+              autoFocus
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setKwhModal({ visible: false, bookingId: null })}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalConfirmBtn, { backgroundColor: '#29B6F6' }]} onPress={submitKwh}>
+                <Text style={styles.modalConfirmText}>End Session</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id}
@@ -220,7 +286,6 @@ export default function BookingRequestsScreen({ navigation }) {
 function makeStyles(c) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: c.bg },
-  heading: { fontSize: 22, fontWeight: '800', color: c.textPrimary, padding: 20, paddingBottom: 12 },
   card: {
     backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1,
     borderRadius: 14, padding: 16, marginBottom: 12,
@@ -251,5 +316,20 @@ function makeStyles(c) {
   emptyIcon: { fontSize: 40, marginBottom: 12 },
   empty: { color: c.textSecondary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
   emptySub: { color: c.textMuted, fontSize: 13 },
+  modalOverlay: { flex: 1, backgroundColor: '#00000088', justifyContent: 'center', alignItems: 'center' },
+  modalBox: { backgroundColor: c.card, borderRadius: 16, padding: 24, width: '85%', borderWidth: 1, borderColor: c.cardBorder },
+  modalTitle: { fontSize: 17, fontWeight: '800', color: c.textPrimary, marginBottom: 6 },
+  modalSub: { fontSize: 13, color: c.textMuted, marginBottom: 16 },
+  modalInput: {
+    borderWidth: 1, borderColor: c.cardBorder, borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 22,
+    fontWeight: '700', color: c.textPrimary, textAlign: 'center',
+    letterSpacing: 8, marginBottom: 20, backgroundColor: c.bg,
+  },
+  modalActions: { flexDirection: 'row', gap: 10 },
+  modalCancelBtn: { flex: 1, borderWidth: 1, borderColor: c.cardBorder, borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
+  modalCancelText: { color: c.textSecondary, fontWeight: '600', fontSize: 14 },
+  modalConfirmBtn: { flex: 2, backgroundColor: c.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
+  modalConfirmText: { color: '#000', fontWeight: '700', fontSize: 14 },
 });
 }

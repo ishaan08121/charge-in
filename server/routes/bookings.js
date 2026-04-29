@@ -178,10 +178,12 @@ router.post('/:id/respond', requireAuth, async (req, res, next) => {
         await razorpay.payments.capture(booking.razorpay_payment_id, booking.amount_held, 'INR');
       }
 
-      await supabase
+      const { error: updateErr } = await supabase
         .from('bookings')
         .update({ status: 'confirmed', updated_at: new Date().toISOString() })
         .eq('id', booking.id);
+
+      if (updateErr) return res.status(500).json({ error: 'Failed to confirm booking: ' + updateErr.message });
 
       const userToken = await getUserPushToken(booking.user_id);
       await notifyUser(userToken, 'confirmed', booking);
@@ -193,10 +195,12 @@ router.post('/:id/respond', requireAuth, async (req, res, next) => {
         await razorpay.payments.refund(booking.razorpay_payment_id, { speed: 'normal' });
       }
 
-      await supabase
+      const { error: updateErr } = await supabase
         .from('bookings')
         .update({ status: 'declined', updated_at: new Date().toISOString() })
         .eq('id', booking.id);
+
+      if (updateErr) return res.status(500).json({ error: 'Failed to decline booking: ' + updateErr.message });
 
       const userToken = await getUserPushToken(booking.user_id);
       await notifyUser(userToken, 'declined', booking);
