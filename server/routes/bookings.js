@@ -232,10 +232,12 @@ router.post('/:id/start', requireAuth, async (req, res, next) => {
 
     const now = new Date().toISOString();
 
-    await supabase
+    const { error: startUpdateErr } = await supabase
       .from('bookings')
       .update({ status: 'active', updated_at: now })
       .eq('id', booking.id);
+
+    if (startUpdateErr) return res.status(500).json({ error: 'Failed to start session: ' + startUpdateErr.message });
 
     // Create session record
     const { data: session, error: sessionErr } = await supabase
@@ -290,18 +292,22 @@ router.post('/:id/end', requireAuth, async (req, res, next) => {
     }
 
     // Update session
-    const { data: session } = await supabase
+    const { data: session, error: sessionEndErr } = await supabase
       .from('sessions')
       .update({ ended_at: now, units_kwh, final_amount: finalAmount })
       .eq('booking_id', booking.id)
       .select()
       .single();
 
+    if (sessionEndErr) return res.status(500).json({ error: 'Failed to update session: ' + sessionEndErr.message });
+
     // Mark booking completed
-    await supabase
+    const { error: endUpdateErr } = await supabase
       .from('bookings')
       .update({ status: 'completed', updated_at: now })
       .eq('id', booking.id);
+
+    if (endUpdateErr) return res.status(500).json({ error: 'Failed to complete booking: ' + endUpdateErr.message });
 
     // Platform fee (10%), host gets 90%
     const platformFee = Math.round(finalAmount * 0.1);
