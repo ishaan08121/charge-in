@@ -227,7 +227,7 @@ router.post('/:id/start', requireAuth, async (req, res, next) => {
 
     if (fetchErr) return res.status(404).json({ error: 'Booking not found' });
     if (booking.host_id !== req.userId) return res.status(403).json({ error: 'Forbidden — only host can start session' });
-    if (booking.status !== 'confirmed') return res.status(400).json({ error: 'Booking is not confirmed' });
+    if (!['confirmed', 'active'].includes(booking.status)) return res.status(400).json({ error: 'Booking is not confirmed' });
     if (booking.otp !== otp) return res.status(400).json({ error: 'Invalid OTP' });
 
     const now = new Date().toISOString();
@@ -239,10 +239,10 @@ router.post('/:id/start', requireAuth, async (req, res, next) => {
 
     if (startUpdateErr) return res.status(500).json({ error: 'Failed to start session: ' + startUpdateErr.message });
 
-    // Create session record
+    // Upsert session record (handles duplicate if start was retried)
     const { data: session, error: sessionErr } = await supabase
       .from('sessions')
-      .insert({ booking_id: booking.id, started_at: now })
+      .upsert({ booking_id: booking.id, started_at: now }, { onConflict: 'booking_id', ignoreDuplicates: true })
       .select()
       .single();
 
@@ -275,7 +275,7 @@ router.post('/:id/end', requireAuth, async (req, res, next) => {
 
     if (fetchErr) return res.status(404).json({ error: 'Booking not found' });
     if (booking.host_id !== req.userId) return res.status(403).json({ error: 'Forbidden' });
-    if (booking.status !== 'active') return res.status(400).json({ error: 'Booking is not active' });
+    if (!['active', 'confirmed'].includes(booking.status)) return res.status(400).json({ error: 'Booking is not active' });
 
     const finalAmount = Math.round(units_kwh * booking.charger.price_per_kwh * 100); // paise
     const now = new Date().toISOString();
@@ -291,11 +291,13 @@ router.post('/:id/end', requireAuth, async (req, res, next) => {
       });
     }
 
-    // Update session
+    // Upsert session (handles case where start session failed to create the record)
     const { data: session, error: sessionEndErr } = await supabase
       .from('sessions')
-      .update({ ended_at: now, units_kwh, final_amount: finalAmount })
-      .eq('booking_id', booking.id)
+      .upsert(
+        { booking_id: booking.id, ended_at: now, units_kwh, final_amount: finalAmount },
+        { onConflict: 'booking_id', ignoreDuplicates: false }
+      )
       .select()
       .single();
 
