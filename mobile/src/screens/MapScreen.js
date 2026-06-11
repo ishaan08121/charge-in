@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, ActivityIndicator,
   TouchableOpacity, TextInput, Platform, Keyboard, Animated,
-  Dimensions, StatusBar,
+  Dimensions, StatusBar, PanResponder,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
@@ -112,8 +112,11 @@ export default function MapScreen({ navigation }) {
     setSearching(true);
     try {
       const query = encodeURIComponent(searchText.trim());
+      const bias = userLocation
+        ? `&viewbox=${userLocation.longitude - 1},${userLocation.latitude + 1},${userLocation.longitude + 1},${userLocation.latitude - 1}&bounded=0`
+        : '';
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=in${bias}`,
         { headers: { 'User-Agent': 'charge-in-app' } }
       );
       const data = await response.json();
@@ -141,6 +144,25 @@ export default function MapScreen({ navigation }) {
       tension: 65, friction: 13,
     }).start();
   }
+
+  const sheetOpenRef = useRef(sheetOpen);
+  sheetOpenRef.current = sheetOpen;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dy) > 5,
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dy < -20) {
+          animateSheet(true);
+        } else if (gs.dy > 20) {
+          animateSheet(false);
+        } else {
+          animateSheet(!sheetOpenRef.current);
+        }
+      },
+    })
+  ).current;
 
   function onWebMessage(event) {
     try {
@@ -201,9 +223,9 @@ export default function MapScreen({ navigation }) {
       </View>
 
       <Animated.View style={[s.sheet, { height: sheetAnim }]}>
-        <TouchableOpacity style={s.handleWrap} onPress={() => animateSheet(!sheetOpen)} activeOpacity={0.7}>
+        <View style={s.handleWrap} {...panResponder.panHandlers}>
           <View style={s.handle} />
-        </TouchableOpacity>
+        </View>
 
         {sheetOpen && (
           <>
