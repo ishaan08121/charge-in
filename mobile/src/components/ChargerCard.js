@@ -8,7 +8,7 @@ function Stars({ rating, starColor }) {
   return <Text style={{ color: starColor, fontSize: 13, letterSpacing: 1 }}>{stars}</Text>;
 }
 
-export default function ChargerCard({ charger, onPress }) {
+export default function ChargerCard({ charger, onPress, offRouteKm }) {
   const c = useColors();
   const s = makeStyles(c);
   const distKm = charger.distance_m ? (charger.distance_m / 1000).toFixed(1) : null;
@@ -46,6 +46,11 @@ export default function ChargerCard({ charger, onPress }) {
         <View style={s.tag}>
           <Text style={s.tagText}>{charger.power_kw} kW</Text>
         </View>
+        {offRouteKm !== undefined && (
+          <View style={s.routeTag}>
+            <Text style={s.routeTagText}>🗺 {offRouteKm.toFixed(1)}km off route</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -85,5 +90,10 @@ function makeStyles(c) {
       paddingHorizontal: 10, paddingVertical: 4,
     },
     tagText: { color: c.textSecondary, fontSize: 12 },
+    routeTag: {
+      backgroundColor: c.primaryDim, borderRadius: 20,
+      paddingHorizontal: 10, paddingVertical: 4,
+    },
+    routeTagText: { color: c.primary, fontSize: 12, fontWeight: '600' },
   });
 }
